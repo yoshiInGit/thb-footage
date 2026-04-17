@@ -17,6 +17,7 @@ class ScriptStep(PipelineStep):
         prompt_dir = os.path.join(self.config["paths"]["prompt_dir"], "script")
         draft_prompt_tmpl = read_file(os.path.join(prompt_dir, "draft.txt"))
         review_prompt_tmpl = read_file(os.path.join(prompt_dir, "review.txt"))
+        finalize_prompt_tmpl = read_file(os.path.join(prompt_dir, "finalize.txt"))
         
         previous_script = ""
         generated_parts = []
@@ -25,12 +26,26 @@ class ScriptStep(PipelineStep):
             title = section.get("title", f"Section {i+1}")
             description = section.get("description", "")
             
-            print(f"[{self.name}] Generating script for: {title} ({i+1}/{len(sections)})")
+            print(f"[{self.name}] --- Processing: {title} ({i+1}/{len(sections)}) ---")
             
-            prompt = draft_prompt_tmpl.replace("{title}", title).replace("{description}", description)
+            # 1. 台本草案生成
+            print(f"  - [{self.name}] Generating script draft...")
+            draft = self.generate_from_template(
+                draft_prompt_tmpl, 
+                {
+                    "title": title, 
+                    "description": description,
+                    "context": previous_script
+                }
+            )
             
-            # 推敲生成（直前のセクションを文脈として渡す）
-            final_part = self.refine_generate(prompt, review_prompt_tmpl, context_text=previous_script)
+            # 2. レビュー
+            print(f"  - [{self.name}] Reviewing script...")
+            review = self.generate_from_template(review_prompt_tmpl, {"draft": draft})
+            
+            # 3. 最終化
+            print(f"  - [{self.name}] Finalizing script...")
+            final_part = self.generate_from_template(finalize_prompt_tmpl, {"draft": draft, "review": review})
             
             # 保存
             part_filename = f"part_{i+1:02d}.txt"

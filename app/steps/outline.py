@@ -14,11 +14,19 @@ class OutlineStep(PipelineStep):
         prompt_dir = os.path.join(self.config["paths"]["prompt_dir"], "outline")
         draft_prompt_tmpl = read_file(os.path.join(prompt_dir, "draft.txt"))
         review_prompt_tmpl = read_file(os.path.join(prompt_dir, "review.txt"))
+        finalize_prompt_tmpl = read_file(os.path.join(prompt_dir, "finalize.txt"))
         
-        prompt = draft_prompt_tmpl.replace("{theme}", theme)
-        
+        # 1. 草案生成
         print(f"[{self.name}] Generating draft outline...")
-        final_outline_json = self.refine_generate(prompt, review_prompt_tmpl)
+        draft = self.generate_from_template(draft_prompt_tmpl, {"theme": theme})
+        
+        # 2. レビュー
+        print(f"[{self.name}] Reviewing draft...")
+        review = self.generate_from_template(review_prompt_tmpl, {"draft": draft})
+        
+        # 3. 最終化
+        print(f"[{self.name}] Finalizing outline...")
+        final_outline_json = self.generate_from_template(finalize_prompt_tmpl, {"draft": draft, "review": review})
         
         # 成果物の保存
         output_path = os.path.join(self.output_dir, "outline.json")

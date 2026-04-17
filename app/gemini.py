@@ -17,16 +17,11 @@ class GeminiClient:
             generation_config=generation_config
         )
 
-    def generate_content(self, prompt: str, context_text: Optional[str] = None) -> str:
+    def generate_content(self, prompt: str) -> str:
         """
         コンテンツを生成する。
-        context_textがある場合は、プロンプトの前に付与する。
         """
-        full_prompt = prompt
-        if context_text:
-            full_prompt = f"Previous Context:\n{context_text}\n\nCurrent Request:\n{prompt}"
-        
-        response = self.model.generate_content(full_prompt)
+        response = self.model.generate_content(prompt)
         return response.text
 
     def generate_with_history(self, messages: List[Dict[str, str]]) -> str:

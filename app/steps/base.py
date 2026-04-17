@@ -36,30 +36,15 @@ class PipelineStep(ABC):
         """
         pass
 
-    def refine_generate(self, prompt: str, review_prompt: str, context_text: Optional[str] = None) -> str:
+    def generate_from_template(self, template: str, params: Dict[str, str]) -> str:
         """
-        生成、検証（レビュー）、修正の「推敲ループ」を実行します。
-        1. 草案生成: 最初のプロンプトで内容を作成。
-        2. セルフレビュー: Gemini自身に草案の改善点を指摘させる。
-        3. 最終稿作成: 指摘を反映して品質を高めた最終回答を得る。
-
-        :param prompt: 初回の生成用プロンプト
-        :param review_prompt: AI自身の出力を検証するためのプロンプト
-        :param context_text: 前のセクションなどの文脈（オプション）
-        :return: 推敲済みの最終テキスト
+        テンプレートにパラメータを埋め込んでGeminiで生成する。
+        :param template: プロンプトテンプレート（{key} 形式のプレースホルダーを含む）
+        :param params: 置換するパラメータの辞書
+        :return: 生成されたテキスト
         """
-        # 1. 草案生成
-        print(f"  - [{self.name}] Creating draft...")
-        draft = self.gemini.generate_content(prompt, context_text)
+        prompt = template
+        for key, value in params.items():
+            prompt = prompt.replace(f"{{{key}}}", value)
         
-        # 2. セルフレビュー
-        print(f"  - [{self.name}] Reviewing draft...")
-        review_input = f"以下の内容は草案です。改善点や矛盾点を指摘してください。\n\n---\n{draft}\n---\n\n{review_prompt}"
-        review = self.gemini.generate_content(review_input)
-        
-        # 3. 修正案生成（最終稿）
-        print(f"  - [{self.name}] Finalizing content...")
-        finalize_input = f"以下の指摘事項を反映して、最終稿を完成させてください。\n\n指摘事項:\n{review}\n\n草案:\n{draft}"
-        final = self.gemini.generate_content(finalize_input)
-        
-        return final
+        return self.gemini.generate_content(prompt)
