@@ -36,15 +36,16 @@ class PipelineStep(ABC):
         """
         pass
 
-    def generate_from_template(self, template: str, params: Dict[str, str]) -> str:
+    def generate_from_template(self, template: str, params: Dict[str, str], gen_config: Optional[Dict[str, Any]] = None) -> str:
         """
         テンプレートにパラメータを埋め込んでGeminiで生成する。
         :param template: プロンプトテンプレート（{key} 形式のプレースホルダーを含む）
         :param params: 置換するパラメータの辞書
+        :param gen_config: 生成設定のオーバーライド
         :return: 生成されたテキスト
         """
         prompt = template
         for key, value in params.items():
             prompt = prompt.replace(f"{{{key}}}", value)
         
-        return self.gemini.generate_content(prompt)
+        return self.gemini.generate_content(prompt, generation_config=gen_config)

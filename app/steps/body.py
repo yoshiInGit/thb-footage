@@ -19,12 +19,15 @@ class BodyStep(PipelineStep):
         review_prompt_tmpl = read_file(os.path.join(prompt_dir, "review.txt"))
         finalize_prompt_tmpl = read_file(os.path.join(prompt_dir, "finalize.txt"))
         
+        story_hook = outline_data.get("story_hook", "")
         previous_script = ""
         generated_parts = []
         
         for i, section in enumerate(sections):
             title = section.get("title", f"Section {i+1}")
             description = section.get("description", "")
+            phase = section.get("phase", "")
+            mini_hook = section.get("mini_hook", "")
             
             print(f"[{self.name}] --- Processing: {title} ({i+1}/{len(sections)}) ---")
             
@@ -35,6 +38,9 @@ class BodyStep(PipelineStep):
                 {
                     "title": title, 
                     "description": description,
+                    "phase": phase,
+                    "mini_hook": mini_hook,
+                    "story_hook": story_hook,
                     "context": previous_script
                 }
             )

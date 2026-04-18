@@ -1,7 +1,20 @@
 import json
 import os
+from typing import Dict, List
+import typing_extensions as typing
 from app.steps.base import PipelineStep
 from app.utils import read_file, write_file
+
+class SectionSchema(typing.TypedDict):
+    phase: str
+    title: str
+    description: str
+    mini_hook: str
+
+class OutlineSchema(typing.TypedDict):
+    title: str
+    story_hook: str
+    sections: List[SectionSchema]
 
 class OutlineStep(PipelineStep):
     def run(self, input_paths: Dict[str, str]) -> str:
@@ -21,17 +34,27 @@ class OutlineStep(PipelineStep):
         review_prompt_tmpl = read_file(os.path.join(prompt_dir, "review.txt"))
         finalize_prompt_tmpl = read_file(os.path.join(prompt_dir, "finalize.txt"))
         
-        # 1. 草案生成
-        print(f"[{self.name}] Generating draft outline...")
-        draft = self.generate_from_template(draft_prompt_tmpl, {"plan": plan, "intro": intro})
+        # 構造化出力の設定
+        gen_config = {
+            "response_mime_type": "application/json",
+            "response_schema": OutlineSchema
+        }
         
-        # 2. レビュー
+        # 1. 草案生成
+        print(f"[{self.name}] Generating draft outline (Structured)...")
+        draft = self.generate_from_template(draft_prompt_tmpl, {"plan": plan, "intro": intro}, gen_config)
+        
+        # 2. レビュー (レビューはテキストで良い)
         print(f"[{self.name}] Reviewing draft...")
         review = self.generate_from_template(review_prompt_tmpl, {"draft": draft})
         
         # 3. 最終化
-        print(f"[{self.name}] Finalizing outline...")
-        final_outline_json = self.generate_from_template(finalize_prompt_tmpl, {"draft": draft, "review": review})
+        print(f"[{self.name}] Finalizing outline (Structured)...")
+        final_outline_json = self.generate_from_template(
+            finalize_prompt_tmpl, 
+            {"draft": draft, "review": review},
+            gen_config
+        )
         
         # 成果物の保存
         output_path = os.path.join(self.output_dir, "outline.json")
