@@ -4,11 +4,16 @@ from app.steps.base import PipelineStep
 from app.utils import read_file, write_file
 
 class OutlineStep(PipelineStep):
-    def run(self, input_file: str) -> str:
+    def run(self, input_paths: Dict[str, str]) -> str:
         """
         構成案を生成する。
+        :param input_paths: {"plan": path, "intro": path} 形式の辞書
         """
-        theme = read_file(input_file)
+        plan_path = input_paths.get("plan")
+        intro_path = input_paths.get("intro")
+        
+        plan = read_file(plan_path)
+        intro = read_file(intro_path)
         
         # プロンプトの読み込み
         prompt_dir = os.path.join(self.config["paths"]["prompt_dir"], "outline")
@@ -18,7 +23,7 @@ class OutlineStep(PipelineStep):
         
         # 1. 草案生成
         print(f"[{self.name}] Generating draft outline...")
-        draft = self.generate_from_template(draft_prompt_tmpl, {"theme": theme})
+        draft = self.generate_from_template(draft_prompt_tmpl, {"plan": plan, "intro": intro})
         
         # 2. レビュー
         print(f"[{self.name}] Reviewing draft...")

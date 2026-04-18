@@ -6,9 +6,9 @@ import os
 
 def main():
     parser = argparse.ArgumentParser(description="YouTube動画台本自動生成システム")
-    parser.add_argument("--step", type=str, choices=["all", "outline", "script", "merge"], default="all",
+    parser.add_argument("--step", type=str, choices=["all", "intro", "outline", "body", "outro", "merge"], default="all",
                         help="実行する工程を指定 (default: all)")
-    parser.add_argument("--input", type=str, default="input/theme.txt",
+    parser.add_argument("--input", type=str, default="input/plan.txt",
                         help="入力ファイルまたは中間データのパス")
     parser.add_argument("--config", type=str, default="config/settings.yaml",
                         help="設定ファイルのパス")

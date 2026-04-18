@@ -3,21 +3,41 @@ from app.steps.base import PipelineStep
 from app.utils import write_file, read_file
 
 class MergeStep(PipelineStep):
-    def run(self, parts_dir: str) -> str:
+    def run(self, input_paths: dict) -> str:
         """
-        生成された台本パーツを結合する。
+        生成された台本パーツ（イントロ、本文、アウトロ）を結合する。
+        :param input_paths: {"intro": path, "body_dir": path, "outro": path} 形式の辞書
         """
-        files = sorted([f for f in os.listdir(parts_dir) if f.startswith("part_") and f.endswith(".txt")])
+        intro_path = input_paths.get("intro")
+        body_dir = input_paths.get("body_dir")
+        outro_path = input_paths.get("outro")
         
         full_script = []
-        for filename in files:
-            content = read_file(os.path.join(parts_dir, filename))
-            full_script.append(content)
-            full_script.append("\n\n") # セクション間に改行
+        
+        # 1. イントロ
+        if intro_path and os.path.exists(intro_path):
+            full_script.append("【イントロ】\n")
+            full_script.append(read_file(intro_path))
+            full_script.append("\n\n")
+            
+        # 2. 本文パーツ
+        if body_dir and os.path.exists(body_dir):
+            files = sorted([f for f in os.listdir(body_dir) if f.startswith("part_") and f.endswith(".txt")])
+            for filename in files:
+                content = read_file(os.path.join(body_dir, filename))
+                full_script.append(f"【本文: {filename}】\n")
+                full_script.append(content)
+                full_script.append("\n\n")
+                
+        # 3. アウトロ
+        if outro_path and os.path.exists(outro_path):
+            full_script.append("【アウトロ】\n")
+            full_script.append(read_file(outro_path))
+            full_script.append("\n\n")
             
         final_text = "".join(full_script)
         
-        output_path = os.path.join(self.config["paths"]["output_dir"], "03_final", "final_script.txt")
+        output_path = os.path.join(self.config["paths"]["output_dir"], "05_merge", "final_script.txt")
         write_file(output_path, final_text)
         
         print(f"[{self.name}] Final script saved to: {output_path}")

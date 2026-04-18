@@ -3,7 +3,7 @@ import os
 from app.steps.base import PipelineStep
 from app.utils import read_file, write_file
 
-class ScriptStep(PipelineStep):
+class BodyStep(PipelineStep):
     def run(self, outline_file: str) -> str:
         """
         構成案に基づいて各セクションの台本を生成する。
@@ -14,7 +14,7 @@ class ScriptStep(PipelineStep):
         sections = outline_data.get("sections", [])
         
         # プロンプトの読み込み
-        prompt_dir = os.path.join(self.config["paths"]["prompt_dir"], "script")
+        prompt_dir = os.path.join(self.config["paths"]["prompt_dir"], "body")
         draft_prompt_tmpl = read_file(os.path.join(prompt_dir, "draft.txt"))
         review_prompt_tmpl = read_file(os.path.join(prompt_dir, "review.txt"))
         finalize_prompt_tmpl = read_file(os.path.join(prompt_dir, "finalize.txt"))
