@@ -40,3 +40,6 @@ input/theme.txt.example
 # OS
 .DS_Store
 Thumbs.db
+
+# Gemini Logs
+output/logs/
