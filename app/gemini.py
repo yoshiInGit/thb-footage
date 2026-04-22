@@ -73,3 +73,17 @@ class GeminiClient:
         self._save_log(prompt_full, response_text)
         
         return response_text
+
+    def generate_from_template(self, template: str, params: Dict[str, str], generation_config: Optional[Dict[str, Any]] = None) -> str:
+        """
+        テンプレートにパラメータを埋め込んでコンテンツを生成する。
+        :param template: プロンプトテンプレート（{key} 形式のプレースホルダーを含む）
+        :param params: 置換するパラメータの辞書
+        :param generation_config: 生成設定のオーバーライド
+        :return: 生成されたテキスト
+        """
+        prompt = template
+        for key, value in params.items():
+            prompt = prompt.replace(f"{{{key}}}", value)
+        
+        return self.generate_content(prompt, generation_config=generation_config)

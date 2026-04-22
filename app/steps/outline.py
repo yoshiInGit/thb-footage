@@ -62,10 +62,6 @@ class OutlineStep(PipelineStep):
         
         return output_path
 
-    # 基底クラスの generate_from_template をオーバーライドして config を渡せるようにする
-    def generate_from_template(self, template: str, params: Dict[str, str], gen_config: Dict[str, Any] = None) -> str:
-        prompt = template
-        for key, value in params.items():
-            prompt = prompt.replace(f"{{{key}}}", value)
+        write_file(output_path, final_outline_json)
         
-        return self.gemini.generate_content(prompt, generation_config=gen_config)
+        return output_path

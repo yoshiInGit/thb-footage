@@ -44,8 +44,4 @@ class PipelineStep(ABC):
         :param gen_config: 生成設定のオーバーライド
         :return: 生成されたテキスト
         """
-        prompt = template
-        for key, value in params.items():
-            prompt = prompt.replace(f"{{{key}}}", value)
-        
-        return self.gemini.generate_content(prompt, generation_config=gen_config)
+        return self.gemini.generate_from_template(template, params, generation_config=gen_config)

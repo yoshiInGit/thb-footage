@@ -105,18 +105,48 @@ cp .env.example .env
 # .env を編集して GOOGLE_API_KEY=YOUR_KEY を設定
 ```
 
-### 2. Docker の起動
+### 2. Docker イメージのビルド
+初回実行時や `Dockerfile`、`requirements.txt` を変更した際に実行します。
+
 ```bash
 docker-compose build
 ```
 
 ---
 
-## 使い方
+## 使い方 (Docker)
 
-### 基本的な実行
+本システムは Docker コンテナ内での実行を推奨しています。
+
+### 1. コンテナ内での bash 起動（開発・確認用）
+コンテナ内に入って直接コマンドを打ちたい場合に使用します。
+
 ```bash
-docker-compose run --rm app python main.py [オプション]
+# コンテナに入る
+docker-compose run --rm app bash
+
+# --- コンテナ内での操作例 ---
+# 実行環境の確認
+python --version
+
+# スクリプトの実行例
+python main.py --step all      # 全工程を一括実行
+python main.py --step intro    # イントロのみ生成
+python main.py --step outline  # 構成案のみ生成
+python main.py --step body     # 本文のみ生成
+python main.py --step outro    # アウトロのみ生成
+python main.py --step merge    # 最終結合のみ実行
+```
+
+### 2. 台本生成コマンドの実行
+コンテナを起動して `main.py` を実行します。
+
+```bash
+# 全工程を一括実行
+docker-compose run --rm app python main.py --step all
+
+# 特定の工程のみ実行
+docker-compose run --rm app python main.py --step intro
 ```
 
 ### コマンドライン引数の詳細
