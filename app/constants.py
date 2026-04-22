@@ -40,8 +40,6 @@ PLAN_FILE = os.path.join(INPUT_DIR, "plan.txt")
 # プロンプトファイル: イントロ
 INTRO_PROMPT_DIR = os.path.join(PROMPT_DIR, "intro")
 INTRO_PROMPT_DRAFT = os.path.join(INTRO_PROMPT_DIR, "draft.txt")
-INTRO_PROMPT_REVIEW = os.path.join(INTRO_PROMPT_DIR, "review.txt")
-INTRO_PROMPT_FINALIZE = os.path.join(INTRO_PROMPT_DIR, "finalize.txt")
 
 # プロンプトファイル: アウトライン
 OUTLINE_PROMPT_DIR = os.path.join(PROMPT_DIR, "outline")
