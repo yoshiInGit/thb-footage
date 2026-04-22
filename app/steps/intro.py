@@ -1,6 +1,7 @@
 import os
 from app.steps.base import PipelineStep
 from app.utils import read_file, write_file
+from app.constants import INTRO_PROMPT_DRAFT, INTRO_PROMPT_REVIEW, INTRO_PROMPT_FINALIZE, INTRO_FILE
 
 class IntroStep(PipelineStep):
     """
@@ -15,10 +16,9 @@ class IntroStep(PipelineStep):
         plan = read_file(plan_file)
         
         # プロンプトの読み込み
-        prompt_dir = os.path.join(self.config["paths"]["prompt_dir"], "intro")
-        draft_prompt_tmpl = read_file(os.path.join(prompt_dir, "draft.txt"))
-        review_prompt_tmpl = read_file(os.path.join(prompt_dir, "review.txt"))
-        finalize_prompt_tmpl = read_file(os.path.join(prompt_dir, "finalize.txt"))
+        draft_prompt_tmpl = read_file(INTRO_PROMPT_DRAFT)
+        review_prompt_tmpl = read_file(INTRO_PROMPT_REVIEW)
+        finalize_prompt_tmpl = read_file(INTRO_PROMPT_FINALIZE)
         
         # 1. 草案生成
         print(f"[{self.name}] Generating intro draft...")
@@ -33,7 +33,7 @@ class IntroStep(PipelineStep):
         final_intro = self.generate_from_template(finalize_prompt_tmpl, {"draft": draft, "review": review})
         
         # 成果物の保存
-        output_path = os.path.join(self.output_dir, "intro.txt")
+        output_path = INTRO_FILE
         write_file(output_path, final_intro)
         
         return output_path

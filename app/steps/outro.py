@@ -2,6 +2,7 @@ import os
 from app.steps.base import PipelineStep
 from app.utils import read_file, write_file
 from typing import Dict
+from app.constants import OUTRO_PROMPT_DRAFT, OUTRO_PROMPT_REVIEW, OUTRO_PROMPT_FINALIZE, OUTRO_FILE
 
 class OutroStep(PipelineStep):
     """
@@ -23,10 +24,9 @@ class OutroStep(PipelineStep):
             body_content += read_file(os.path.join(body_dir, part)) + "\n\n"
         
         # プロンプトの読み込み
-        prompt_dir = os.path.join(self.config["paths"]["prompt_dir"], "outro")
-        draft_prompt_tmpl = read_file(os.path.join(prompt_dir, "draft.txt"))
-        review_prompt_tmpl = read_file(os.path.join(prompt_dir, "review.txt"))
-        finalize_prompt_tmpl = read_file(os.path.join(prompt_dir, "finalize.txt"))
+        draft_prompt_tmpl = read_file(OUTRO_PROMPT_DRAFT)
+        review_prompt_tmpl = read_file(OUTRO_PROMPT_REVIEW)
+        finalize_prompt_tmpl = read_file(OUTRO_PROMPT_FINALIZE)
         
         # 1. 草案生成
         print(f"[{self.name}] Generating outro draft...")
@@ -41,7 +41,7 @@ class OutroStep(PipelineStep):
         final_outro = self.generate_from_template(finalize_prompt_tmpl, {"draft": draft, "review": review})
         
         # 成果物の保存
-        output_path = os.path.join(self.output_dir, "outro.txt")
+        output_path = OUTRO_FILE
         write_file(output_path, final_outro)
         
         return output_path

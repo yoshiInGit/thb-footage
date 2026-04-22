@@ -2,6 +2,7 @@ import json
 import os
 from app.steps.base import PipelineStep
 from app.utils import read_file, write_file
+from app.constants import BODY_PROMPT_DRAFT, BODY_PROMPT_REVIEW, BODY_PROMPT_FINALIZE
 
 class BodyStep(PipelineStep):
     def run(self, outline_file: str) -> str:
@@ -14,10 +15,9 @@ class BodyStep(PipelineStep):
         sections = outline_data.get("sections", [])
         
         # プロンプトの読み込み
-        prompt_dir = os.path.join(self.config["paths"]["prompt_dir"], "body")
-        draft_prompt_tmpl = read_file(os.path.join(prompt_dir, "draft.txt"))
-        review_prompt_tmpl = read_file(os.path.join(prompt_dir, "review.txt"))
-        finalize_prompt_tmpl = read_file(os.path.join(prompt_dir, "finalize.txt"))
+        draft_prompt_tmpl = read_file(BODY_PROMPT_DRAFT)
+        review_prompt_tmpl = read_file(BODY_PROMPT_REVIEW)
+        finalize_prompt_tmpl = read_file(BODY_PROMPT_FINALIZE)
         
         story_hook = outline_data.get("story_hook", "")
         previous_script = ""

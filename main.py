@@ -4,13 +4,15 @@ from app.pipeline import Pipeline
 from app.utils import load_config
 import os
 
+from app.constants import PLAN_FILE, SETTINGS_YAML
+
 def main():
     parser = argparse.ArgumentParser(description="YouTube動画台本自動生成システム")
     parser.add_argument("--step", type=str, choices=["all", "intro", "outline", "body", "outro", "merge"], default="all",
                         help="実行する工程を指定 (default: all)")
-    parser.add_argument("--input", type=str, default="input/plan.txt",
+    parser.add_argument("--input", type=str, default=PLAN_FILE,
                         help="入力ファイルまたは中間データのパス")
-    parser.add_argument("--config", type=str, default="config/settings.yaml",
+    parser.add_argument("--config", type=str, default=SETTINGS_YAML,
                         help="設定ファイルのパス")
     
     args = parser.parse_args()

@@ -6,6 +6,10 @@ from app.steps.body import BodyStep
 from app.steps.outro import OutroStep
 from app.steps.merge import MergeStep
 import os
+from app.constants import (
+    STEP_01_INTRO, STEP_02_OUTLINE, STEP_03_BODY, STEP_04_OUTRO, STEP_05_MERGE,
+    INTRO_FILE, OUTLINE_FILE, BODY_OUT_DIR, OUTRO_FILE
+)
 
 class Pipeline:
     def __init__(self, config: Dict[str, Any]):
@@ -21,11 +25,11 @@ class Pipeline:
         )
         
         # ステップの初期化
-        self.intro_step = IntroStep("01_intro", config, self.gemini)
-        self.outline_step = OutlineStep("02_outline", config, self.gemini)
-        self.body_step = BodyStep("03_body", config, self.gemini)
-        self.outro_step = OutroStep("04_outro", config, self.gemini)
-        self.merge_step = MergeStep("05_merge", config, self.gemini)
+        self.intro_step = IntroStep(STEP_01_INTRO, config, self.gemini)
+        self.outline_step = OutlineStep(STEP_02_OUTLINE, config, self.gemini)
+        self.body_step = BodyStep(STEP_03_BODY, config, self.gemini)
+        self.outro_step = OutroStep(STEP_04_OUTRO, config, self.gemini)
+        self.merge_step = MergeStep(STEP_05_MERGE, config, self.gemini)
 
     def run_all(self, plan_file: str):
         """全工程を順番に実行。"""
@@ -48,8 +52,6 @@ class Pipeline:
 
     def run_step(self, step_name: str, input_path: str):
         """特定のステップから実行。"""
-        output_dir = self.config["paths"]["output_dir"]
-        
         if step_name == "intro":
             # input_path は企画書 (plan.txt)
             self.intro_step.run(input_path)
@@ -57,8 +59,7 @@ class Pipeline:
         elif step_name == "outline":
             # input_path は企画書 (plan.txt)
             # イントロは既成のものを参照
-            intro_file = os.path.join(output_dir, "01_intro", "intro.txt")
-            self.outline_step.run({"plan": input_path, "intro": intro_file})
+            self.outline_step.run({"plan": input_path, "intro": INTRO_FILE})
             
         elif step_name == "body":
             # input_path は構成案 (outline.json)
@@ -67,16 +68,12 @@ class Pipeline:
         elif step_name == "outro":
             # input_path は企画書 (plan.txt)
             # 本文ディレクトリは既成のものを参照
-            body_dir = os.path.join(output_dir, "03_body")
-            self.outro_step.run({"plan": input_path, "body_dir": body_dir})
+            self.outro_step.run({"plan": input_path, "body_dir": BODY_OUT_DIR})
             
         elif step_name == "merge":
             # input_path は企画書（または無視）
             # 各要素は既成のものを参照
-            intro_file = os.path.join(output_dir, "01_intro", "intro.txt")
-            body_dir = os.path.join(output_dir, "03_body")
-            outro_file = os.path.join(output_dir, "04_outro", "outro.txt")
-            self.merge_step.run({"intro": intro_file, "body_dir": body_dir, "outro": outro_file})
+            self.merge_step.run({"intro": INTRO_FILE, "body_dir": BODY_OUT_DIR, "outro": OUTRO_FILE})
             
         else:
             print(f"Unknown step: {step_name}")

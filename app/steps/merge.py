@@ -1,12 +1,13 @@
 import os
 from app.steps.base import PipelineStep
 from app.utils import write_file, read_file
+from app.constants import FINAL_SCRIPT_FILE
 
 class MergeStep(PipelineStep):
     def run(self, input_paths: dict) -> str:
         """
         生成された台本パーツ（イントロ、本文、アウトロ）を結合する。
-        :param input_paths: {"intro": path, "body_dir": path, "outro": path} 形式の辞書
+        :param input_paths: {"intro": path, "body_dir": path, "outro": path} 形式 of dictionary
         """
         intro_path = input_paths.get("intro")
         body_dir = input_paths.get("body_dir")
@@ -37,7 +38,7 @@ class MergeStep(PipelineStep):
             
         final_text = "".join(full_script)
         
-        output_path = os.path.join(self.config["paths"]["output_dir"], "05_merge", "final_script.txt")
+        output_path = FINAL_SCRIPT_FILE
         write_file(output_path, final_text)
         
         print(f"[{self.name}] Final script saved to: {output_path}")

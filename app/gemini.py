@@ -4,6 +4,8 @@ import google.generativeai as genai
 from typing import Optional, List, Dict, Any
 from dotenv import load_dotenv
 
+from app.constants import LOG_DIR
+
 load_dotenv()
 
 class GeminiClient:
@@ -17,7 +19,7 @@ class GeminiClient:
             model_name=model_name,
             generation_config=generation_config
         )
-        self.log_dir = "output/logs"
+        self.log_dir = LOG_DIR
         self._ensure_log_dir()
 
     def _ensure_log_dir(self):

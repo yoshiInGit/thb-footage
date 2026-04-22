@@ -2,7 +2,9 @@ import os
 import yaml
 from typing import Any, Dict
 
-def load_config(config_path: str = "config/settings.yaml") -> Dict[str, Any]:
+from app.constants import SETTINGS_YAML
+
+def load_config(config_path: str = SETTINGS_YAML) -> Dict[str, Any]:
     """YAML設定ファイルを読み込む。"""
     with open(config_path, "r", encoding="utf-8") as f:
         return yaml.safe_load(f)

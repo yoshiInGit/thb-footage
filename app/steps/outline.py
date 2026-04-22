@@ -4,6 +4,7 @@ from typing import Dict, List
 import typing_extensions as typing
 from app.steps.base import PipelineStep
 from app.utils import read_file, write_file
+from app.constants import OUTLINE_PROMPT_DRAFT, OUTLINE_PROMPT_REVIEW, OUTLINE_PROMPT_FINALIZE, OUTLINE_FILE
 
 class SectionSchema(typing.TypedDict):
     phase: str
@@ -29,10 +30,9 @@ class OutlineStep(PipelineStep):
         intro = read_file(intro_path)
         
         # プロンプトの読み込み
-        prompt_dir = os.path.join(self.config["paths"]["prompt_dir"], "outline")
-        draft_prompt_tmpl = read_file(os.path.join(prompt_dir, "draft.txt"))
-        review_prompt_tmpl = read_file(os.path.join(prompt_dir, "review.txt"))
-        finalize_prompt_tmpl = read_file(os.path.join(prompt_dir, "finalize.txt"))
+        draft_prompt_tmpl = read_file(OUTLINE_PROMPT_DRAFT)
+        review_prompt_tmpl = read_file(OUTLINE_PROMPT_REVIEW)
+        finalize_prompt_tmpl = read_file(OUTLINE_PROMPT_FINALIZE)
         
         # 構造化出力の設定
         gen_config = {
@@ -57,7 +57,7 @@ class OutlineStep(PipelineStep):
         )
         
         # 成果物の保存
-        output_path = os.path.join(self.output_dir, "outline.json")
+        output_path = OUTLINE_FILE
         write_file(output_path, final_outline_json)
         
         return output_path
