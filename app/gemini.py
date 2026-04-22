@@ -4,12 +4,12 @@ import google.generativeai as genai
 from typing import Optional, List, Dict, Any
 from dotenv import load_dotenv
 
-from app.constants import LOG_DIR
+from app.constants import LOG_DIR, DEFAULT_MODEL_NAME
 
 load_dotenv()
 
 class GeminiClient:
-    def __init__(self, model_name: str = "gemini-1.5-flash", generation_config: Optional[Dict[str, Any]] = None):
+    def __init__(self, model_name: str = DEFAULT_MODEL_NAME, generation_config: Optional[Dict[str, Any]] = None):
         api_key = os.getenv("GOOGLE_API_KEY")
         if not api_key:
             raise ValueError("GOOGLE_API_KEY not found in environment variables")

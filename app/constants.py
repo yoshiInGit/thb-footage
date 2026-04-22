@@ -1,5 +1,8 @@
 import os
 
+# Gemini モデル設定
+DEFAULT_MODEL_NAME = "gemini-3-flash-preview"
+
 # プロジェクトのルートディレクトリ
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 
