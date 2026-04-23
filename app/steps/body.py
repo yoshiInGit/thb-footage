@@ -2,7 +2,7 @@ import json
 import os
 from app.steps.base import PipelineStep
 from app.utils import read_file, write_file
-from app.constants import BODY_PROMPT_DRAFT, BODY_PROMPT_REVIEW, BODY_PROMPT_FINALIZE
+from app.constants import BODY_PROMPT_DRAFT
 
 class BodyStep(PipelineStep):
     def run(self, outline_file: str) -> str:
@@ -16,8 +16,6 @@ class BodyStep(PipelineStep):
         
         # プロンプトの読み込み
         draft_prompt_tmpl = read_file(BODY_PROMPT_DRAFT)
-        review_prompt_tmpl = read_file(BODY_PROMPT_REVIEW)
-        finalize_prompt_tmpl = read_file(BODY_PROMPT_FINALIZE)
         
         story_hook = outline_data.get("story_hook", "")
         previous_script = ""
@@ -29,11 +27,21 @@ class BodyStep(PipelineStep):
             phase = section.get("phase", "")
             mini_hook = section.get("mini_hook", "")
             
+            # 次のセクションの情報を取得（存在する場合）
+            next_section = None
+            if i + 1 < len(sections):
+                next_section_data = sections[i+1]
+                next_section = {
+                    "title": next_section_data.get("title", ""),
+                    "description": next_section_data.get("description", ""),
+                    "mini_hook": next_section_data.get("mini_hook", "")
+                }
+            
             print(f"[{self.name}] --- Processing: {title} ({i+1}/{len(sections)}) ---")
             
-            # 1. 台本草案生成
-            print(f"  - [{self.name}] Generating script draft...")
-            draft = self.generate_from_template(
+            # 1. 台本生成
+            print(f"  - [{self.name}] Generating script...")
+            final_part = self.generate_from_template(
                 draft_prompt_tmpl, 
                 {
                     "title": title, 
@@ -41,17 +49,10 @@ class BodyStep(PipelineStep):
                     "phase": phase,
                     "mini_hook": mini_hook,
                     "story_hook": story_hook,
-                    "context": previous_script
+                    "context": previous_script,
+                    "next_section_info": json.dumps(next_section, ensure_ascii=False) if next_section else "これが最終章です"
                 }
             )
-            
-            # 2. レビュー
-            print(f"  - [{self.name}] Reviewing script...")
-            review = self.generate_from_template(review_prompt_tmpl, {"draft": draft})
-            
-            # 3. 最終化
-            print(f"  - [{self.name}] Finalizing script...")
-            final_part = self.generate_from_template(finalize_prompt_tmpl, {"draft": draft, "review": review})
             
             # 保存
             part_filename = f"part_{i+1:02d}.txt"

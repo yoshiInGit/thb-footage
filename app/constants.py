@@ -50,8 +50,6 @@ OUTLINE_PROMPT_FINALIZE = os.path.join(OUTLINE_PROMPT_DIR, "finalize.txt")
 # プロンプトファイル: 本文
 BODY_PROMPT_DIR = os.path.join(PROMPT_DIR, "body")
 BODY_PROMPT_DRAFT = os.path.join(BODY_PROMPT_DIR, "draft.txt")
-BODY_PROMPT_REVIEW = os.path.join(BODY_PROMPT_DIR, "review.txt")
-BODY_PROMPT_FINALIZE = os.path.join(BODY_PROMPT_DIR, "finalize.txt")
 
 # プロンプトファイル: アウトロ
 OUTRO_PROMPT_DIR = os.path.join(PROMPT_DIR, "outro")
