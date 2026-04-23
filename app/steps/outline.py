@@ -61,7 +61,3 @@ class OutlineStep(PipelineStep):
         write_file(output_path, final_outline_json)
         
         return output_path
-
-        write_file(output_path, final_outline_json)
-        
-        return output_path

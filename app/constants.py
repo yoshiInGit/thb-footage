@@ -33,6 +33,7 @@ MERGE_OUT_DIR = os.path.join(OUTPUT_DIR, STEP_05_MERGE)
 
 # 設定ファイル
 SETTINGS_YAML = os.path.join(CONFIG_DIR, "settings.yaml")
+CONTROL_FILE = os.path.join(CONFIG_DIR, "control.json")
 
 # 入力ファイル
 PLAN_FILE = os.path.join(INPUT_DIR, "plan.txt")

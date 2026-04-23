@@ -116,53 +116,41 @@ docker-compose build
 
 ## 使い方 (Docker)
 
-本システムは Docker コンテナ内での実行を推奨しています。
+本システムは、すべての工程制御を `config/control.json` で行います。コマンドライン引数は不要です。
 
-### 1. コンテナ内での bash 起動（開発・確認用）
-コンテナ内に入って直接コマンドを打ちたい場合に使用します。
+### 1. 実行手順
 
-```bash
-# コンテナに入る
-docker-compose run --rm app bash
+1.  **企画書を用意する**: `input/plan.txt` に動画のコンセプトを記入します。
+2.  **制御設定を編集する**: `config/control.json` を開き、実行したい工程を指定します。
+    *   `next_step`: 実行する工程 (`intro`, `outline`, `body`, `outro`, `merge` または一括実行の `all`)
+    *   **章ごとの実行**: `body_1`, `body_2` のように指定することで、特定の章だけをピンポイントで生成できます（1-based）。全章生成する場合は `body` と指定します。
+3.  **コマンドを実行する**:
+    ```bash
+    docker-compose run --rm app python main.py
+    ```
 
-# --- コンテナ内での操作例 ---
-# 実行環境の確認
-python --version
+### 2. 工程の詳細と入力/出力
 
-# スクリプトの実行例
-python main.py --step all      # 全工程を一括実行
-python main.py --step intro    # イントロのみ生成
-python main.py --step outline  # 構成案のみ生成
-python main.py --step body     # 本文のみ生成
-python main.py --step outro    # アウトロのみ生成
-python main.py --step merge    # 最終結合のみ実行
+| 工程 | `next_step` | 内容 | 主な入出力 |
+| :--- | :--- | :--- | :--- |
+| **イントロ** | `intro` | 冒頭のフックと導入の生成 | `plan.txt` → `intro.txt` |
+| **構成案** | `outline` | ドラマアーク4に基づく章構成(JSON)の生成 | `intro.txt` → `outline.json` |
+| **本文** | `body` | 全セクションの対話形式台本の生成 | `outline.json` → `03_body/*.txt` |
+| **本文(個別)** | `body_1` | 特定の章（例：第1章）のみをピンポイントで生成 | `outline.json` → `part_01.txt` |
+| **アウトロ** | `outro` | エンディングと視聴者へのメッセージ生成 | `03_body` → `outro.txt` |
+| **結合** | `merge` | 全パーツを統合した最終台本の作成 | 各パーツ → `final_script.txt` |
+| **一括** | `all` | 全工程を最初から最後まで連続実行 | - |
+
+### 3. 特殊な実行例（本文の特定章のみ再生成）
+
+`config/control.json` を以下のように設定して実行すると、第3章のみをピンポイントで生成し直せます。前後の文脈は自動的に維持されます。
+
+```json
+{
+    "next_step": "body_3",
+    "plan_file": "input/plan.txt"
+}
 ```
-
-### 2. 台本生成コマンドの実行
-コンテナを起動して `main.py` を実行します。
-
-```bash
-# 全工程を一括実行
-docker-compose run --rm app python main.py --step all
-
-# 特定の工程のみ実行
-docker-compose run --rm app python main.py --step intro
-```
-
-### コマンドライン引数の詳細
-
-| 引数 | 説明 | デフォルト値 |
-| :--- | :--- | :--- |
-| `--step` | 実行する工程を指定（`all`, `intro`, `outline`, `body`, `outro`, `merge`） | `all` |
-| `--input` | 入力ファイル（企画書または中間データ）のパス | `input/plan.txt` |
-| `--config` | 設定ファイル（settings.yaml）のパス | `config/settings.yaml` |
-
-#### `--step` ごとの推奨実行順序と入力
-1. **`intro`**: `input/plan.txt` を用意して実行。
-2. **`outline`**: 完了したイントロを確認・修正後に実行。
-3. **`body`**: 完了した構成案を確認・修正後に実行。
-4. **`outro`**: 完了した本文を確認・修正後に実行。
-5. **`merge`**: 全てが揃った状態で実行。
 
 ---
 
@@ -189,10 +177,9 @@ docker-compose run --rm app python main.py --step intro
 ---
 
 ## 推敲ループの仕組み
-各ディレクトリ（`intro`, `outline`, `body`, `outro`）には以下の3つのファイルがあります。
+本システムでは、出力の品質を担保するために「推敲（リファインメント）」プロセスを採用しています。
 
-1. `draft.txt`: AI が最初に生成する草案用のプロンプト。
-2. `review.txt`: 生成された草案を AI 自身が批評するためのプロンプト。
-3. `finalize.txt`: 批評を元に最終稿を仕上げるためのプロンプト。
+- **アウトライン・アウトロ**: `draft.txt` (草案), `review.txt` (批評), `finalize.txt` (仕上げ) の3段階で、AIが自ら内容を評価・修正します。
+- **イントロ・本文**: 制作のスピードとテンポを重視し、`draft.txt` による一回（シングルパス）の生成で完結します。
 
-これらを編集することで、「どのような視点でレビューするか」「最終的にどのようなトーンを目指すか」を細かく制御できます。
+各工程のプロンプトを編集することで、「どのような視点でレビューするか」「最終的にどのようなトーンを目指すか」を細かく制御できます。
