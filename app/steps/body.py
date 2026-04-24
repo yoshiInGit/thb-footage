@@ -46,7 +46,7 @@ class BodyStep(PipelineStep):
         # コンテキスト（前のセクションの概要）の取得
         context = self._get_previous_context(index, all_sections)
         
-        # 次のセクションの情報を取得（ブリッジ用）
+        # 次のセクションの情報を取得（ブリッジ用参考情報）
         next_section_info = self._get_next_section_info(index, all_sections)
         
         # 1. 台本生成
@@ -55,9 +55,11 @@ class BodyStep(PipelineStep):
             template, 
             {
                 "title": title, 
-                "description": section.get("description", ""),
-                "phase": section.get("phase", ""),
+                "protagonist": section.get("protagonist", ""),
                 "mini_hook": section.get("mini_hook", ""),
+                "unexpected_betrayal": section.get("unexpected_betrayal", ""),
+                "resolution": section.get("resolution", ""),
+                "next_hook": section.get("next_hook", ""),
                 "story_hook": story_hook,
                 "context": context,
                 "next_section_info": next_section_info
@@ -69,14 +71,16 @@ class BodyStep(PipelineStep):
         write_file(part_path, final_part)
 
     def _get_previous_context(self, index: int, all_sections: List[Dict]) -> str:
-        """前のセクションのタイトルと概要を取得する。"""
+        """前のセクションの情報を取得する。"""
         if index == 0:
             return "（これが最初の章です）"
         
         prev_data = all_sections[index - 1]
         info = {
             "title": prev_data.get("title", ""),
-            "description": prev_data.get("description", "")
+            "protagonist": prev_data.get("protagonist", ""),
+            "mini_hook": prev_data.get("mini_hook", ""),
+            "resolution": prev_data.get("resolution", "")
         }
         return json.dumps(info, ensure_ascii=False)
 
@@ -88,7 +92,7 @@ class BodyStep(PipelineStep):
         next_data = all_sections[index + 1]
         info = {
             "title": next_data.get("title", ""),
-            "description": next_data.get("description", ""),
+            "protagonist": next_data.get("protagonist", ""),
             "mini_hook": next_data.get("mini_hook", "")
         }
         return json.dumps(info, ensure_ascii=False)

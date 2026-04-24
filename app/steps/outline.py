@@ -7,13 +7,14 @@ from app.utils import read_file, write_file
 from app.constants import OUTLINE_PROMPT_DRAFT, OUTLINE_PROMPT_REVIEW, OUTLINE_PROMPT_FINALIZE, OUTLINE_FILE
 
 class SectionSchema(typing.TypedDict):
-    phase: str
     title: str
-    description: str
+    protagonist: str
     mini_hook: str
+    unexpected_betrayal: str
+    resolution: str
+    next_hook: str
 
 class OutlineSchema(typing.TypedDict):
-    title: str
     story_hook: str
     sections: List[SectionSchema]
 
