@@ -59,6 +59,13 @@ class OutlineStep(PipelineStep):
         
         # 成果物の保存
         output_path = OUTLINE_FILE
-        write_file(output_path, final_outline_json)
+        # JSONを読みやすく整形して保存
+        try:
+            outline_data = json.loads(final_outline_json)
+            formatted_json = json.dumps(outline_data, indent=4, ensure_ascii=False)
+            write_file(output_path, formatted_json)
+        except json.JSONDecodeError:
+            print(f"[{self.name}] Warning: Failed to parse JSON. Saving raw output.")
+            write_file(output_path, final_outline_json)
         
         return output_path

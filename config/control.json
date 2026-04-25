@@ -1,5 +1,5 @@
 {
-    "next_step": "intro",
+    "next_step": "outline",
     "plan_file": "input/plan.txt",
     "notes": "next_step: intro, outline, body, body_1, body_2..., outro, merge, all"
 }

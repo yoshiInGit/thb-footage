@@ -1,6 +1,6 @@
 import json
 import os
-from typing import Optional
+from typing import Optional, Dict, List
 from app.steps.base import PipelineStep
 from app.utils import read_file, write_file
 from app.constants import BODY_PROMPT_DRAFT
