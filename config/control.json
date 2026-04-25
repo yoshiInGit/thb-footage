@@ -1,5 +1,5 @@
 {
-    "next_step": "outline",
+    "next_step": "setup",
     "plan_file": "input/plan.txt",
-    "notes": "next_step: intro, outline, body, body_1, body_2..., outro, merge, all"
+    "notes": "next_step: setup, question, pressure, schema, merge, all"
 }

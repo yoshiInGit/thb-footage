@@ -47,12 +47,15 @@ class GeminiClient:
         :param generation_config: 生成設定のオーバーライド
         """
         # インスタンス生成時の設定と、引数で渡された設定をマージ
-        config = self.model._generation_config.copy()
+        config = self.model._generation_config.copy() if self.model._generation_config else {}
         if generation_config:
             for key, value in generation_config.items():
                 config[key] = value
 
         response = self.model.generate_content(prompt, generation_config=config)
+        
+        # response_schemaが指定されている場合、JSONとしてパースされるはずなので、
+        # response.text をそのまま返す（パースは呼び出し側で行う）
         response_text = response.text
         
         self._save_log(prompt, response_text)

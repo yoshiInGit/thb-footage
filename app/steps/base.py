@@ -8,6 +8,7 @@ from typing import Any, Dict, Optional
 from app.gemini import GeminiClient
 from app.utils import write_file, read_file, ensure_dir
 import os
+import json
 
 class PipelineStep(ABC):
     """
@@ -39,9 +40,49 @@ class PipelineStep(ABC):
     def generate_from_template(self, template: str, params: Dict[str, str], gen_config: Optional[Dict[str, Any]] = None) -> str:
         """
         テンプレートにパラメータを埋め込んでGeminiで生成する。
-        :param template: プロンプトテンプレート（{key} 形式のプレースホルダーを含む）
-        :param params: 置換するパラメータの辞書
-        :param gen_config: 生成設定のオーバーライド
-        :return: 生成されたテキスト
+        外部で定義された JSON スキーマを強制する。
         """
-        return self.gemini.generate_from_template(template, params, generation_config=gen_config)
+        config = gen_config or {}
+        if "response_mime_type" not in config:
+            config["response_mime_type"] = "application/json"
+        
+        # スキーマを外部定義として適用
+        if "response_schema" not in config:
+            config["response_schema"] = {
+                "type": "object",
+                "properties": {
+                    "thinking": {
+                        "type": "string", 
+                        "description": "物語の構成、感情設計、伏線の意図などの思考プロセス"
+                    },
+                    "script": {
+                        "type": "string", 
+                        "description": "指定された文体（だ・である調）での台本本文"
+                    }
+                },
+                "required": ["thinking", "script"]
+            }
+            
+        return self.gemini.generate_from_template(template, params, generation_config=config)
+
+    def parse_json_result(self, result_text: str) -> str:
+        """
+        AIからのJSON出力をパースし、script部分を抽出する。
+        JSONとしてパースできない場合は、元のテキストをそのまま返す。
+        """
+        # コードブロック（```json ... ```）が含まれている場合の除去
+        clean_text = result_text.strip()
+        if clean_text.startswith("```json"):
+            clean_text = clean_text[7:]
+        if clean_text.endswith("```"):
+            clean_text = clean_text[:-3]
+        clean_text = clean_text.strip()
+
+        try:
+            data = json.loads(clean_text)
+            if "thinking" in data:
+                print(f"[{self.name}] Thinking: {data['thinking'][:100]}...")
+            return data.get("script", result_text)
+        except json.JSONDecodeError:
+            print(f"[{self.name}] Warning: Failed to parse result as JSON. Using raw text.")
+            return result_text
