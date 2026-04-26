@@ -1,5 +1,6 @@
 import os
 import yaml
+import datetime
 from typing import Any, Dict
 
 from app.constants import SETTINGS_YAML
@@ -20,7 +21,16 @@ def read_file(path: str) -> str:
         return f.read()
 
 def write_file(path: str, content: str):
-    """ファイルに内容を書き込む。"""
+    """ファイルに内容を書き込む（追記モード）。"""
     ensure_dir(os.path.dirname(path))
-    with open(path, "w", encoding="utf-8") as f:
+    
+    file_exists = os.path.exists(path)
+    
+    with open(path, "a", encoding="utf-8") as f:
+        if file_exists:
+            # 既存の内容がある場合はセパレーターを挿入
+            timestamp = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+            f.write(f"\n\n{'='*50}\n")
+            f.write(f"[追加書き込み: {timestamp}]\n")
+            f.write(f"{'='*50}\n\n")
         f.write(content)

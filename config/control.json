@@ -1,5 +1,5 @@
 {
-    "next_step": "setup",
+    "next_step": "question",
     "plan_file": "input/plan.txt",
     "notes": "next_step: setup, question, pressure, schema, merge, all"
 }
