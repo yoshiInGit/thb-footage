@@ -10,11 +10,12 @@ class PressureStep(PipelineStep):
     def run(self, input_data: dict) -> str:
         """
         Pressure Chamber パートを生成する。
-        :param input_data: {"plan": str, "context": str} (contextは前段階の結合内容など)
+        :param input_data: {"plan": str, "context": str, "request": str}
         :return: 生成されたファイルのパス
         """
         plan = read_file(input_data["plan"])
-        context = input_data["context"] # すでに読み込まれたテキストを期待
+        context = input_data["context"]
+        request = input_data.get("request", "")
         
         draft_prompt_tmpl = read_file(PRESSURE_PROMPT_DRAFT)
         
@@ -23,7 +24,8 @@ class PressureStep(PipelineStep):
             draft_prompt_tmpl, 
             {
                 "plan": plan,
-                "context": context
+                "context": context,
+                "request": request
             }
         )
         

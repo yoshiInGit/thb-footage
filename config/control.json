@@ -1,5 +1,6 @@
 {
     "next_step": "question",
     "plan_file": "input/plan.txt",
-    "notes": "next_step: setup, question, pressure, schema, merge, all"
+    "request": "ボイジャー１号を何も知らない人向けに、そもそもボイジャー１号とは何か解説をいれて",
+    "notes": "next_step: setup, question, pressure, schema, merge, all / request: 追加の要望があれば記入"
 }

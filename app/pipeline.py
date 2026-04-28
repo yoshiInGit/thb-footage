@@ -43,11 +43,12 @@ class Pipeline:
 
         next_step_str = control.get("next_step", "")
         plan_file = control.get("plan_file", "input/plan.txt")
+        request = control.get("request", "")
         
         if next_step_str == "all":
-            self._run_all(plan_file)
+            self._run_all(plan_file, request)
         elif next_step_str in self.steps:
-            self._run_step(next_step_str, plan_file)
+            self._run_step(next_step_str, plan_file, request)
         else:
             print(f"[{self.__class__.__name__}] Error: Unknown step '{next_step_str}' specified in control.json")
 
@@ -58,7 +59,8 @@ class Pipeline:
             template = {
                 "next_step": "setup",
                 "plan_file": "input/plan.txt",
-                "notes": "next_step: setup, question, pressure, schema, merge, all"
+                "request": "",
+                "notes": "next_step: setup, question, pressure, schema, merge, all / request: 追加の要望があれば記入"
             }
             with open(CONTROL_FILE, "w", encoding="utf-8") as f:
                 json.dump(template, f, indent=4, ensure_ascii=False)
@@ -68,19 +70,19 @@ class Pipeline:
         with open(CONTROL_FILE, "r", encoding="utf-8") as f:
             return json.load(f)
 
-    def _run_all(self, plan_file: str):
+    def _run_all(self, plan_file: str, request: str = ""):
         """全工程を順番に実行。"""
         print(f"[{self.__class__.__name__}] Running all steps sequentially...")
         
-        setup_file = self.steps["setup"].run(plan_file)
-        question_file = self.steps["question"].run({"plan": plan_file, "setup": setup_file})
+        setup_file = self.steps["setup"].run(plan_file, request=request)
+        question_file = self.steps["question"].run({"plan": plan_file, "setup": setup_file, "request": request})
         
         # 葛藤パートと解決パートに渡すコンテキスト（これまでの展開）を作成
         context_q = read_file(setup_file) + "\n\n" + read_file(question_file)
-        pressure_file = self.steps["pressure"].run({"plan": plan_file, "context": context_q})
+        pressure_file = self.steps["pressure"].run({"plan": plan_file, "context": context_q, "request": request})
         
         context_p = context_q + "\n\n" + read_file(pressure_file)
-        schema_file = self.steps["schema"].run({"plan": plan_file, "context": context_p})
+        schema_file = self.steps["schema"].run({"plan": plan_file, "context": context_p, "request": request})
         
         final_script = self.steps["merge"].run({
             "setup": setup_file,
@@ -91,23 +93,23 @@ class Pipeline:
         
         print(f"[{self.__class__.__name__}] Pipeline completed! Final script: {final_script}")
 
-    def _run_step(self, step_key: str, plan_file: str):
+    def _run_step(self, step_key: str, plan_file: str, request: str = ""):
         """特定のステップを実行。"""
         print(f"[{self.__class__.__name__}] Executing step: {step_key}")
 
         step = self.steps[step_key]
         
         if step_key == "setup":
-            step.run(plan_file)
+            step.run(plan_file, request=request)
         elif step_key == "question":
-            step.run({"plan": plan_file, "setup": SETUP_FILE})
+            step.run({"plan": plan_file, "setup": SETUP_FILE, "request": request})
         elif step_key == "pressure":
-            # 単体実行時も前段階のファイルが存在することを前提とする
+            # 単体実行時も前段階의ファイルが存在することを前提とする
             context = read_file(SETUP_FILE) + "\n\n" + read_file(QUESTION_FILE)
-            step.run({"plan": plan_file, "context": context})
+            step.run({"plan": plan_file, "context": context, "request": request})
         elif step_key == "schema":
             context = read_file(SETUP_FILE) + "\n\n" + read_file(QUESTION_FILE) + "\n\n" + read_file(PRESSURE_FILE)
-            step.run({"plan": plan_file, "context": context})
+            step.run({"plan": plan_file, "context": context, "request": request})
         elif step_key == "merge":
             step.run({
                 "setup": SETUP_FILE,

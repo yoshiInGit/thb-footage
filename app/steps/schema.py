@@ -10,11 +10,12 @@ class SchemaStep(PipelineStep):
     def run(self, input_data: dict) -> str:
         """
         Schema Update パートを生成する。
-        :param input_data: {"plan": str, "context": str}
+        :param input_data: {"plan": str, "context": str, "request": str}
         :return: 生成されたファイルのパス
         """
         plan = read_file(input_data["plan"])
         context = input_data["context"]
+        request = input_data.get("request", "")
         
         draft_prompt_tmpl = read_file(SCHEMA_PROMPT_DRAFT)
         
@@ -23,7 +24,8 @@ class SchemaStep(PipelineStep):
             draft_prompt_tmpl, 
             {
                 "plan": plan,
-                "context": context
+                "context": context,
+                "request": request
             }
         )
         

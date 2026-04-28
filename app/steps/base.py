@@ -9,6 +9,7 @@ from app.gemini import GeminiClient
 from app.utils import write_file, read_file, ensure_dir
 import os
 import json
+import re
 
 class PipelineStep(ABC):
     """
@@ -82,7 +83,18 @@ class PipelineStep(ABC):
             data = json.loads(clean_text)
             if "thinking" in data:
                 print(f"[{self.name}] Thinking: {data['thinking'][:100]}...")
-            return data.get("script", result_text)
+            script = data.get("script", result_text)
+            return self.format_script(script)
         except json.JSONDecodeError:
             print(f"[{self.name}] Warning: Failed to parse result as JSON. Using raw text.")
-            return result_text
+            return self.format_script(result_text)
+
+    def format_script(self, text: str) -> str:
+        """
+        句点（。）の後に改行を入れるフォーマット処理。
+        既に改行がある場合は重複させない。
+        """
+        if not text:
+            return text
+        # 句点（。）の後に改行がない場合に改行を挿入
+        return re.sub(r'(。)(?!\n)', r'\1\n', text)

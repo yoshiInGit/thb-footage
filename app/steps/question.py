@@ -10,11 +10,12 @@ class QuestionStep(PipelineStep):
     def run(self, input_data: dict) -> str:
         """
         Dramatic Question パートを生成する。
-        :param input_data: {"plan": str, "setup": str} (ファイルパス)
+        :param input_data: {"plan": str, "setup": str, "request": str} (ファイルパスと追加要望)
         :return: 生成されたファイルのパス
         """
         plan = read_file(input_data["plan"])
         setup_content = read_file(input_data["setup"])
+        request = input_data.get("request", "")
         
         draft_prompt_tmpl = read_file(QUESTION_PROMPT_DRAFT)
         
@@ -23,7 +24,8 @@ class QuestionStep(PipelineStep):
             draft_prompt_tmpl, 
             {
                 "plan": plan,
-                "context": setup_content
+                "context": setup_content,
+                "request": request
             }
         )
         
