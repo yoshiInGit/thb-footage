@@ -1,6 +1,6 @@
 {
-    "next_step": "pressure-1",
+    "next_step": "chronicle-1",
     "plan_file": "input/plan.txt",
-    "request": "ボイジャー１号を何も知らない人向けに、そもそもボイジャー１号とは何か解説をいれて。また今の段階では、地球の撮影に成功し、それが塵みたいなものだったことは言及しないで、あくまで、大発見ができるかという疑問に焦点を当てて。",
-    "notes": "next_step: setup, question, pressure, schema, merge, all / request: 追加の要望があれば記入"
+    "request": "ボイジャー１号を何も知らない人向けに、そもそもボイジャー１号とは何か解説をい入れ。また今の段階では、地球の撮影に成功し、それが塵みたいなものだったことは言及しないで、あくまで、大発見ができるかという疑問に焦点を当てて。",
+    "notes": "next_step: setup, question, chronicle, schema, merge, all / request: 追加の要望があれば記入"
 }

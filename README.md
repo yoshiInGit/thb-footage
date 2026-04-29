@@ -29,7 +29,7 @@ graph TD
     P[input/plan.txt] -- ①企画書 --> A[01_setup]
     A -- "②Set Up (TXT)" --> B[02_question]
     P -- ①企画書 --> B
-    B -- "③Question (TXT)" --> C[03_pressure]
+    B -- "③Question (TXT)" --> C[03_chronicle]
     P -- ①企画書 --> C
     A & B -- "コンテキスト" --> C
     C -- "④Chronicle of Discovery (TXT)" --> D[04_schema]
@@ -45,7 +45,7 @@ graph TD
 | :--- | :--- | :--- |
 | **Set Up** | `plan.txt` | `setup.txt` |
 | **Question** | `plan.txt`, `setup.txt` | `question.txt` |
-| **Pressure** | `plan.txt`, `setup.txt`, `question.txt` | `pressure.txt` |
+| **Chronicle** | `plan.txt`, `setup.txt`, `question.txt` | `pressure.txt` |
 | **Schema** | `plan.txt`, `setup.txt`, `question.txt`, `pressure.txt` | `schema.txt` |
 | **Merge** | 上記全てのTXTファイル | `final_script.txt` |
 
@@ -76,7 +76,7 @@ docker-compose build
 
 1.  **企画書を用意する**: `input/plan.txt` に動画のコンセプトを記入します。
 2.  **制御設定を編集する**: `config/control.json` で `next_step` を指定します。
-    *   `next_step`: `setup`, `question`, `pressure`, `schema`, `merge` または一括実行の `all`
+    *   `next_step`: `setup`, `question`, `chronicle`, `schema`, `merge` または一括実行の `all`
 3.  **コマンドを実行する**:
     ```bash
     docker-compose run --rm app python main.py
@@ -88,7 +88,7 @@ docker-compose build
 | :--- | :--- | :--- |
 | **Set Up** | `setup` | 主人公への感情移入と期待感の醸成。 |
 | **Question** | `question` | 「Yes/No」で答える具体的かつハイリスクな問いの提示。 |
-| **Pressure** | `pressure` | 事実の積み上げと謎の深化により、好奇心を最大化する。 |
+| **Chronicle** | `chronicle` | 事実の積み上げと謎の深化により、好奇心を最大化する。 |
 | **Schema** | `schema` | 解釈の逆転と世界観の再構築を伴う解決。 |
 | **Merge** | `merge` | 全パーツを統合し、一つの完成した台本を作成。 |
 | **一括実行** | `all` | 全工程を最初から最後まで連続実行。 |

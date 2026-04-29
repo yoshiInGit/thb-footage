@@ -1,7 +1,7 @@
 import os
 from app.steps.base import PipelineStep
 from app.utils import write_file, read_file
-from app.constants import FINAL_SCRIPT_FILE, get_pressure_file
+from app.constants import FINAL_SCRIPT_FILE, get_chronicle_file
 
 class MergeStep(PipelineStep):
     """
@@ -9,23 +9,23 @@ class MergeStep(PipelineStep):
     """
     def run(self, input_paths: dict) -> str:
         """
-        :param input_paths: {"setup": path, "question": path, "pressure": path, "schema": path}
+        :param input_paths: {"setup": path, "question": path, "chronicle": path, "schema": path}
         """
         parts_info = [
             ("Set Up", "setup"),
             ("Dramatic Question", "question"),
-            ("Chronicle of Discovery", "pressure"),
+            ("Chronicle of Discovery", "chronicle"),
             ("Schema Update", "schema")
         ]
         
         full_script = []
         
         for label, key in parts_info:
-            if key == "pressure":
+            if key == "chronicle":
                 # 分割ファイルがあるかチェック
                 found_parts = False
                 for i in range(1, 11):
-                    p_path = get_pressure_file(str(i))
+                    p_path = get_chronicle_file(str(i))
                     if os.path.exists(p_path):
                         full_script.append(f"【{label} - Part {i}】\n")
                         full_script.append(read_file(p_path))

@@ -2,15 +2,15 @@ from typing import Dict, Any, Optional
 from app.gemini import GeminiClient
 from app.steps.setup import SetupStep
 from app.steps.question import QuestionStep
-from app.steps.pressure import PressureStep
+from app.steps.chronicle import ChronicleStep
 from app.steps.schema import SchemaStep
 from app.steps.merge import MergeStep
 from app.utils import read_file
 import os
 import json
 from app.constants import (
-    STEP_01_SETUP, STEP_02_QUESTION, STEP_03_PRESSURE, STEP_04_SCHEMA, STEP_05_MERGE,
-    SETUP_FILE, QUESTION_FILE, PRESSURE_FILE, SCHEMA_FILE, CONTROL_FILE, get_pressure_file
+    STEP_01_SETUP, STEP_02_QUESTION, STEP_03_CHRONICLE, STEP_04_SCHEMA, STEP_05_MERGE,
+    SETUP_FILE, QUESTION_FILE, CHRONICLE_FILE, SCHEMA_FILE, CONTROL_FILE, get_chronicle_file
 )
 
 class Pipeline:
@@ -30,7 +30,7 @@ class Pipeline:
         self.steps = {
             "setup": SetupStep(STEP_01_SETUP, config, self.gemini),
             "question": QuestionStep(STEP_02_QUESTION, config, self.gemini),
-            "pressure": PressureStep(STEP_03_PRESSURE, config, self.gemini),
+            "chronicle": ChronicleStep(STEP_03_CHRONICLE, config, self.gemini),
             "schema": SchemaStep(STEP_04_SCHEMA, config, self.gemini),
             "merge": MergeStep(STEP_05_MERGE, config, self.gemini),
         }
@@ -47,7 +47,7 @@ class Pipeline:
         
         if next_step_str == "all":
             self._run_all(plan_file, request)
-        elif next_step_str in self.steps or next_step_str.startswith("pressure"):
+        elif next_step_str in self.steps or next_step_str.startswith("chronicle"):
             self._run_step(next_step_str, plan_file, request)
         else:
             print(f"[{self.__class__.__name__}] Error: Unknown step '{next_step_str}' specified in control.json")
@@ -60,7 +60,7 @@ class Pipeline:
                 "next_step": "setup",
                 "plan_file": "input/plan.txt",
                 "request": "",
-                "notes": "next_step: setup, question, pressure, schema, merge, all / request: 追加の要望があれば記入"
+                "notes": "next_step: setup, question, chronicle, schema, merge, all / request: 追加の要望があれば記入"
             }
             with open(CONTROL_FILE, "w", encoding="utf-8") as f:
                 json.dump(template, f, indent=4, ensure_ascii=False)
@@ -79,43 +79,43 @@ class Pipeline:
         
         # 探究の軌跡パートと解決パートに渡すコンテキスト（これまでの展開）を作成
         context_q = read_file(setup_file) + "\n\n" + read_file(question_file)
-        pressure_file = self.steps["pressure"].run({"plan": plan_file, "context": context_q, "request": request})
+        chronicle_file = self.steps["chronicle"].run({"plan": plan_file, "context": context_q, "request": request})
         
-        context_p = context_q + "\n\n" + read_file(pressure_file)
+        context_p = context_q + "\n\n" + read_file(chronicle_file)
         schema_file = self.steps["schema"].run({"plan": plan_file, "context": context_p, "request": request})
         
         final_script = self.steps["merge"].run({
             "setup": setup_file,
             "question": question_file,
-            "pressure": pressure_file,
+            "chronicle": chronicle_file,
             "schema": schema_file
         })
         
         print(f"[{self.__class__.__name__}] Pipeline completed! Final script: {final_script}")
 
-    def _get_pressure_context(self, part_limit: Optional[str] = None) -> str:
+    def _get_chronicle_context(self, part_limit: Optional[str] = None) -> str:
         """
         保存されている Chronicle of Discovery パートを読み込み、コンテキスト文字列を作成する。
         :param part_limit: このパート番号（文字列）に達したら停止する。Noneの場合はすべて読み込む。
         """
         context = ""
-        pressure_parts_found = False
+        chronicle_parts_found = False
         for i in range(1, 11):
             p_str = str(i)
             if part_limit and p_str == part_limit:
                 break
             
-            p_path = get_pressure_file(p_str)
+            p_path = get_chronicle_file(p_str)
             if os.path.exists(p_path):
                 print(f"[{self.__class__.__name__}] Adding {p_path} to context...")
                 context += f"\n\n--- (Chronicle of Discovery Part {p_str}) ---\n" + read_file(p_path)
-                pressure_parts_found = True
+                chronicle_parts_found = True
             else:
                 break
         
         # 分割ファイルが見つからず、かつデフォルトのファイルが存在する場合
-        if not pressure_parts_found and os.path.exists(PRESSURE_FILE):
-            context += "\n\n" + read_file(PRESSURE_FILE)
+        if not chronicle_parts_found and os.path.exists(CHRONICLE_FILE):
+            context += "\n\n" + read_file(CHRONICLE_FILE)
             
         return context
 
@@ -131,23 +131,24 @@ class Pipeline:
             step = self.steps["question"]
             step.run({"plan": plan_file, "setup": SETUP_FILE, "request": request})
         
-        elif step_key.startswith("pressure"):
-            # pressure-1, pressure-2 などをパース
+        elif step_key.startswith("chronicle"):
+            # chronicle-1, chronicle-2 などをパース
             part = None
             if "-" in step_key:
                 part = step_key.split("-")[1]
             
             # コンテキストの作成。前のパートがあればそれも入れる。
             context = read_file(SETUP_FILE) + "\n\n" + read_file(QUESTION_FILE)
-            context += self._get_pressure_context(part_limit=part)
+            context += self._get_chronicle_context(part_limit=part)
 
-            step = self.steps["pressure"]
+            step = self.steps["chronicle"]
             step.run({"plan": plan_file, "context": context, "request": request, "part": part})
         
         elif step_key == "schema":
             context = read_file(SETUP_FILE) + "\n\n" + read_file(QUESTION_FILE)
-            context += self._get_pressure_context()
-                
+            context += self._get_chronicle_context()
+            
+            step = self.steps["schema"]
             step.run({"plan": plan_file, "context": context, "request": request})
        
         elif step_key == "merge":
@@ -155,6 +156,6 @@ class Pipeline:
             step.run({
                 "setup": SETUP_FILE,
                 "question": QUESTION_FILE,
-                "pressure": PRESSURE_FILE,
+                "chronicle": CHRONICLE_FILE,
                 "schema": SCHEMA_FILE
             })

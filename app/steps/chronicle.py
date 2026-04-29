@@ -1,9 +1,9 @@
 import os
 from app.steps.base import PipelineStep
 from app.utils import read_file, write_file
-from app.constants import PRESSURE_PROMPT_DRAFT, get_pressure_file
+from app.constants import CHRONICLE_PROMPT_DRAFT, get_chronicle_file
 
-class PressureStep(PipelineStep):
+class ChronicleStep(PipelineStep):
     """
     事実の積み上げと新たな謎の提示により、知的好奇心を極限まで高める「Chronicle of Discovery（探究の軌跡）」を生成するステップ。
     """
@@ -22,7 +22,7 @@ class PressureStep(PipelineStep):
         if part:
             part_instruction = f"今回は、企画書の【Chronicle of Discovery-{part}】に該当する箇所を重点的に執筆してください。それ以外のパートは含めないでください。"
         
-        draft_prompt_tmpl = read_file(PRESSURE_PROMPT_DRAFT)
+        draft_prompt_tmpl = read_file(CHRONICLE_PROMPT_DRAFT)
         
         print(f"[{self.name}] Generating Chronicle of Discovery" + (f" (Part {part})..." if part else "..."))
         result = self.generate_from_template(
@@ -38,7 +38,7 @@ class PressureStep(PipelineStep):
         # JSONパース
         final_script = self.parse_json_result(result)
         
-        output_path = get_pressure_file(part)
+        output_path = get_chronicle_file(part)
         write_file(output_path, final_script)
         
         return output_path
