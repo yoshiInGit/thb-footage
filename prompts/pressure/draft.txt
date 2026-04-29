@@ -20,12 +20,15 @@
     <plan>
       {plan}
     </plan>
-    <context>
+    <context description="これまでのスクリプト（Set Up ＋ Dramatic Question パートの生成済み台本）。このPressure Chamberパートはこの直後に続く部分として書くこと。文体・登場人物・物語の状況はこのスクリプトと整合させること。">
       {context}
     </context>
     <request>
       {request}
     </request>
+    <part_instruction>
+      {part_instruction}
+    </part_instruction>
   </inputs>
 
   <structural_guidelines>

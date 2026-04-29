@@ -56,3 +56,12 @@ QUESTION_FILE = os.path.join(QUESTION_OUT_DIR, "question.txt")
 PRESSURE_FILE = os.path.join(PRESSURE_OUT_DIR, "pressure.txt")
 SCHEMA_FILE = os.path.join(SCHEMA_OUT_DIR, "schema.txt")
 FINAL_SCRIPT_FILE = os.path.join(MERGE_OUT_DIR, "final_script.txt")
+
+def get_pressure_file(part: str = None) -> str:
+    """
+    Pressure Chamber のファイルパスを返す。
+    :param part: パート番号 (例: '1', '2')。None の場合はデフォルトのファイルパスを返す。
+    """
+    if part:
+        return os.path.join(PRESSURE_OUT_DIR, f"pressure-{part}.txt")
+    return PRESSURE_FILE

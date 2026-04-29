@@ -12,7 +12,7 @@
     <plan>
       {plan}
     </plan>
-    <context>
+    <context description="これまでのスクリプト（Set Up ＋ Dramatic Question ＋ Pressure Chamber パートの生成済み台本）。このSchema Updateパートはこの直後に続く最終パートとして書くこと。文体・登場人物・物語の状況・Pressure Chamberで積み上げた感情の圧縮はこのスクリプトを踏まえて整合させること。">
       {context}
     </context>
     <request>

@@ -1,7 +1,7 @@
 import os
 from app.steps.base import PipelineStep
 from app.utils import write_file, read_file
-from app.constants import FINAL_SCRIPT_FILE
+from app.constants import FINAL_SCRIPT_FILE, get_pressure_file
 
 class MergeStep(PipelineStep):
     """
@@ -21,13 +21,36 @@ class MergeStep(PipelineStep):
         full_script = []
         
         for label, key in parts_info:
-            path = input_paths.get(key)
-            if path and os.path.exists(path):
-                full_script.append(f"【{label}】\n")
-                full_script.append(read_file(path))
-                full_script.append("\n\n")
+            if key == "pressure":
+                # 分割ファイルがあるかチェック
+                found_parts = False
+                for i in range(1, 11):
+                    p_path = get_pressure_file(str(i))
+                    if os.path.exists(p_path):
+                        full_script.append(f"【{label} - Part {i}】\n")
+                        full_script.append(read_file(p_path))
+                        full_script.append("\n\n")
+                        found_parts = True
+                    else:
+                        break
+                
+                if not found_parts:
+                    # 分割ファイルがない場合はデフォルトのファイルを確認
+                    path = input_paths.get(key)
+                    if path and os.path.exists(path):
+                        full_script.append(f"【{label}】\n")
+                        full_script.append(read_file(path))
+                        full_script.append("\n\n")
+                    else:
+                        print(f"[{self.name}] Warning: Part '{label}' not found.")
             else:
-                print(f"[{self.name}] Warning: Part '{label}' (path: {path}) not found.")
+                path = input_paths.get(key)
+                if path and os.path.exists(path):
+                    full_script.append(f"【{label}】\n")
+                    full_script.append(read_file(path))
+                    full_script.append("\n\n")
+                else:
+                    print(f"[{self.name}] Warning: Part '{label}' (path: {path}) not found.")
                 
         final_text = "".join(full_script)
         
