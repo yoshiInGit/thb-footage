@@ -18,7 +18,7 @@ LOG_DIR = os.path.join(OUTPUT_DIR, "logs")
 # 各ステップの出力ディレクトリ名
 STEP_01_SETUP = "01_setup"
 STEP_02_QUESTION = "02_question"
-STEP_03_CHRONICLE = "03_pressure"
+STEP_03_CHRONICLE = "03_chronicle"
 STEP_04_SCHEMA = "04_schema"
 STEP_05_MERGE = "05_merge"
 
@@ -41,7 +41,7 @@ PLAN_FILE = os.path.join(INPUT_DIR, "plan.txt")
 # プロンプトディレクトリ
 SETUP_PROMPT_DIR = os.path.join(PROMPT_DIR, "setup")
 QUESTION_PROMPT_DIR = os.path.join(PROMPT_DIR, "question")
-CHRONICLE_PROMPT_DIR = os.path.join(PROMPT_DIR, "pressure")
+CHRONICLE_PROMPT_DIR = os.path.join(PROMPT_DIR, "chronicle")
 SCHEMA_PROMPT_DIR = os.path.join(PROMPT_DIR, "schema")
 
 # プロンプトファイル
@@ -53,7 +53,7 @@ SCHEMA_PROMPT_DRAFT = os.path.join(SCHEMA_PROMPT_DIR, "draft.txt")
 # 成果物ファイル
 SETUP_FILE = os.path.join(SETUP_OUT_DIR, "setup.txt")
 QUESTION_FILE = os.path.join(QUESTION_OUT_DIR, "question.txt")
-CHRONICLE_FILE = os.path.join(CHRONICLE_OUT_DIR, "pressure.txt")
+CHRONICLE_FILE = os.path.join(CHRONICLE_OUT_DIR, "chronicle.txt")
 SCHEMA_FILE = os.path.join(SCHEMA_OUT_DIR, "schema.txt")
 FINAL_SCRIPT_FILE = os.path.join(MERGE_OUT_DIR, "final_script.txt")
 
@@ -63,5 +63,5 @@ def get_chronicle_file(part: str = None) -> str:
     :param part: パート番号 (例: '1', '2')。None の場合はデフォルトのファイルパスを返す。
     """
     if part:
-        return os.path.join(CHRONICLE_OUT_DIR, f"pressure-{part}.txt")
+        return os.path.join(CHRONICLE_OUT_DIR, f"chronicle-{part}.txt")
     return CHRONICLE_FILE
