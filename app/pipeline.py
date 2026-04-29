@@ -77,7 +77,7 @@ class Pipeline:
         setup_file = self.steps["setup"].run(plan_file, request=request)
         question_file = self.steps["question"].run({"plan": plan_file, "setup": setup_file, "request": request})
         
-        # 葛藤パートと解決パートに渡すコンテキスト（これまでの展開）を作成
+        # 探究の軌跡パートと解決パートに渡すコンテキスト（これまでの展開）を作成
         context_q = read_file(setup_file) + "\n\n" + read_file(question_file)
         pressure_file = self.steps["pressure"].run({"plan": plan_file, "context": context_q, "request": request})
         
@@ -95,7 +95,7 @@ class Pipeline:
 
     def _get_pressure_context(self, part_limit: Optional[str] = None) -> str:
         """
-        保存されている Pressure Chamber パートを読み込み、コンテキスト文字列を作成する。
+        保存されている Chronicle of Discovery パートを読み込み、コンテキスト文字列を作成する。
         :param part_limit: このパート番号（文字列）に達したら停止する。Noneの場合はすべて読み込む。
         """
         context = ""
@@ -108,7 +108,7 @@ class Pipeline:
             p_path = get_pressure_file(p_str)
             if os.path.exists(p_path):
                 print(f"[{self.__class__.__name__}] Adding {p_path} to context...")
-                context += f"\n\n--- (Pressure Chamber Part {p_str}) ---\n" + read_file(p_path)
+                context += f"\n\n--- (Chronicle of Discovery Part {p_str}) ---\n" + read_file(p_path)
                 pressure_parts_found = True
             else:
                 break

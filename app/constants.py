@@ -59,7 +59,7 @@ FINAL_SCRIPT_FILE = os.path.join(MERGE_OUT_DIR, "final_script.txt")
 
 def get_pressure_file(part: str = None) -> str:
     """
-    Pressure Chamber のファイルパスを返す。
+    Chronicle of Discovery のファイルパスを返す。
     :param part: パート番号 (例: '1', '2')。None の場合はデフォルトのファイルパスを返す。
     """
     if part:

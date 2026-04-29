@@ -12,7 +12,7 @@
     <plan>
       {plan}
     </plan>
-    <context description="これまでのスクリプト（Set Up ＋ Dramatic Question ＋ Pressure Chamber パートの生成済み台本）。このSchema Updateパートはこの直後に続く最終パートとして書くこと。文体・登場人物・物語の状況・Pressure Chamberで積み上げた感情の圧縮はこのスクリプトを踏まえて整合させること。">
+    <context description="これまでのスクリプト（Set Up ＋ Dramatic Question ＋ Chronicle of Discovery パートの生成済み台本）。このSchema Updateパートはこの直後に続く最終パートとして書くこと。文体・登場人物・物語の状況・Chronicle of Discoveryで積み上げた謎と事実の連鎖はこのスクリプトを踏まえて整合させること。">
       {context}
     </context>
     <request>
@@ -21,7 +21,7 @@
   </inputs>
 
   <design_principles>
-    <goal>Pressure Chamberで極限まで圧縮された視聴者の感情を解放し、「世界の見え方が二度と元に戻らないほど書き換わる」体験を与える。</goal>
+    <goal>Chronicle of Discoveryで極限まで高まった視聴者の知的好奇心を解放し、「世界の見え方が二度と元に戻らないほど書き換わる」体験を与える。</goal>
 
     <essential_elements>
       <element name="1. 対価の支払い" length="6〜8文程度">
@@ -31,7 +31,7 @@
       </element>
 
       <element name="2. 解釈の逆転（エピファニー）" length="7〜9文程度">
-        - Pressure Chamberで「呪い・弱さ・失敗」として描かれていたものが、実は「愛・強さ・必然」だったと反転する
+        - Chronicle of Discoveryで「呪い・弱さ・失敗」として描かれていたものが、実は「愛・強さ・必然」だったと反転する
         - この逆転は、後から振り返れば「それしかなかった」と思わせる伏線の回収であること
         - 逆転の瞬間は、説明ではなく**シーンと行動**で表現する
       </element>

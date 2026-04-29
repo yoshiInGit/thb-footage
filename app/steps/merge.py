@@ -14,7 +14,7 @@ class MergeStep(PipelineStep):
         parts_info = [
             ("Set Up", "setup"),
             ("Dramatic Question", "question"),
-            ("Pressure Chamber", "pressure"),
+            ("Chronicle of Discovery", "pressure"),
             ("Schema Update", "schema")
         ]
         
