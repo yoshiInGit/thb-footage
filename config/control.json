@@ -1,6 +1,6 @@
 {
-    "next_step": "question",
+    "next_step": "merge",
     "plan_file": "input/plan.txt",
-    "request": "最後に撮れた写真が１ピクセル未満の点だったことは、まだ明かさないで。あくまで、何か凄い写真を取ろうとしたという範囲に留めて。",
+    "request": "",
     "notes": "next_step: setup, question, chronicle, schema, merge, all / request: 追加の要望があれば記入"
 }
