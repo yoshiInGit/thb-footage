@@ -36,7 +36,9 @@ graph TD
     P -- ①企画書 --> D
     A & B & C -- "コンテキスト" --> D
     A & B & C & D -- "全パーツ" --> E[05_merge]
-    E -- "⑤結合台本 (TXT)" --> F[最終成果物]
+    E -- "⑤結合台本 (TXT)" --> F[06_format]
+    F -- "⑥整形台本 (TXT)" --> G[07_subtitle]
+    G -- "⑦字幕映像 (MP4)" --> H[最終成果物]
 ```
 
 ## 各ステップの依存関係
@@ -48,6 +50,8 @@ graph TD
 | **Chronicle** | `plan.txt`, `setup.txt`, `question.txt` | `pressure.txt` |
 | **Schema** | `plan.txt`, `setup.txt`, `question.txt`, `pressure.txt` | `schema.txt` |
 | **Merge** | 上記全てのTXTファイル | `final_script.txt` |
+| **Format** | `final_script.txt` | `final_script_formatted.txt` |
+| **Subtitle** | `input/voice/` 内の素材 | `subtitle.mp4` |
 
 ---
 
@@ -91,6 +95,8 @@ docker-compose build
 | **Chronicle** | `chronicle` | 事実の積み上げと謎の深化により、好奇心を最大化する。 |
 | **Schema** | `schema` | 解釈の逆転と世界観の再構築を伴う解決。 |
 | **Merge** | `merge` | 全パーツを統合し、一つの完成した台本を作成。 |
+| **Format** | `format` | 台本の読みやすさを整え、話者識別子を付与。 |
+| **Subtitle** | `subtitle` | 音声とテキストから字幕付き映像を生成。 |
 | **一括実行** | `all` | 全工程を最初から最後まで連続実行。 |
 
 ---
@@ -107,3 +113,30 @@ docker-compose build
 ## 注意事項
 - **Gemini APIの制限**: 生成AIの性質上、出力内容には揺らぎがあります。`config/settings.yaml` の `temperature` で調整してください。
 - **ログの確認**: 各生成時のプロンプトと応答は `output/logs/` に詳細に保存されます。
+
+---
+
+## 字幕映像の設定 (Subtitle Step)
+
+`config/settings.yaml` の `subtitle` セクションで字幕のデザインを調整できます。
+
+```yaml
+subtitle:
+  speakers:
+    "アメノちゃん": "#000000"  # 話者名に含まれる文字列: 色(HEX)
+    "ディアちゃん": "#ff0000"
+  font: "C:\\Windows\\Fonts\\msgothic.ttc" # Windowsフォントパス
+  font_size: 60  # フォントサイズ
+  bg_color: "white" # 背景色
+  width: 1920    # 映像幅
+  height: 150    # 映像高さ
+  padding_x: 250 # 左右余白（この範囲には文字を入れない）
+  silent_duration: 0.15 # 音声終了後の無音期間（秒）。字幕はこの間も表示されます。
+```
+
+### 素材の配置
+`input/voice/` ディレクトリに以下の形式でファイルを配置してください。
+- `001_名前_タイトル.wav` (音声ファイル)
+- `001_名前_タイトル.txt` (字幕テキスト)
+
+※冒頭の3桁の数字でペアリングと再生順序を決定します。

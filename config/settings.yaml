@@ -12,3 +12,15 @@ paths:
 
 refinement:
   max_retries: 2
+
+subtitle:
+  speakers:
+    "アメノちゃん": "#000000" # 黒
+    "ディアちゃん": "#ff0000" # 赤
+  font: "assets/font/MPLUSRounded1c-Medium.ttf"
+  font_size: 40
+  bg_color: "white"
+  width: 1920
+  height: 150
+  padding_x: 250
+  silent_duration: 0.25 # 音声後の無音期間(秒)

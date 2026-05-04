@@ -27,6 +27,7 @@ wheels/
 # Output and cached data
 output/
 input/theme.txt.example
+input/voice/
 
 # Docker
 .dockerignore

@@ -6,11 +6,14 @@ from app.steps.chronicle import ChronicleStep
 from app.steps.schema import SchemaStep
 from app.steps.merge import MergeStep
 from app.steps.format import FormatStep
+from app.steps.subtitle import SubtitleStep
+
 from app.utils import read_file
 import os
 import json
 from app.constants import (
-    STEP_01_SETUP, STEP_02_QUESTION, STEP_03_CHRONICLE, STEP_04_SCHEMA, STEP_05_MERGE, STEP_06_FORMAT,
+    STEP_01_SETUP, STEP_02_QUESTION, STEP_03_CHRONICLE, STEP_04_SCHEMA, STEP_05_MERGE, STEP_06_FORMAT, STEP_07_SUBTITLE,
+
     SETUP_FILE, QUESTION_FILE, CHRONICLE_FILE, SCHEMA_FILE, FINAL_SCRIPT_FILE, CONTROL_FILE, get_chronicle_file
 )
 
@@ -35,7 +38,9 @@ class Pipeline:
             "schema": SchemaStep(STEP_04_SCHEMA, config, self.gemini),
             "merge": MergeStep(STEP_05_MERGE, config, self.gemini),
             "format": FormatStep(STEP_06_FORMAT, config, self.gemini),
+            "subtitle": SubtitleStep(STEP_07_SUBTITLE, config, self.gemini),
         }
+
 
     def run_with_control(self):
         """control.json の設定に基づいて実行。"""
@@ -167,3 +172,8 @@ class Pipeline:
         elif step_key == "format":
             step = self.steps["format"]
             step.run({"input_file": FINAL_SCRIPT_FILE})
+
+        elif step_key == "subtitle":
+            step = self.steps["subtitle"]
+            step.run({})
+

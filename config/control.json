@@ -1,6 +1,6 @@
 {
-    "next_step": "format",
+    "next_step": "subtitle",
     "plan_file": "input/plan.txt",
     "request": "",
-    "notes": "next_step: setup, question, chronicle, schema, merge, format, all / request: 追加の要望があれば記入"
+    "notes": "next_step: setup, question, chronicle, schema, merge, format, subtitle, all / request: 追加の要望があれば記入"
 }

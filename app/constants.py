@@ -22,6 +22,8 @@ STEP_03_CHRONICLE = "03_chronicle"
 STEP_04_SCHEMA = "04_schema"
 STEP_05_MERGE = "05_merge"
 STEP_06_FORMAT = "06_format"
+STEP_07_SUBTITLE = "07_subtitle"
+
 
 # 各ステップの出力ディレクトリパス
 SETUP_OUT_DIR = os.path.join(OUTPUT_DIR, STEP_01_SETUP)
@@ -30,6 +32,8 @@ CHRONICLE_OUT_DIR = os.path.join(OUTPUT_DIR, STEP_03_CHRONICLE)
 SCHEMA_OUT_DIR = os.path.join(OUTPUT_DIR, STEP_04_SCHEMA)
 MERGE_OUT_DIR = os.path.join(OUTPUT_DIR, STEP_05_MERGE)
 FORMAT_OUT_DIR = os.path.join(OUTPUT_DIR, STEP_06_FORMAT)
+SUBTITLE_OUT_DIR = os.path.join(OUTPUT_DIR, STEP_07_SUBTITLE)
+
 
 # --- 末端ファイル定義 ---
 
@@ -39,6 +43,8 @@ CONTROL_FILE = os.path.join(CONFIG_DIR, "control.json")
 
 # 入力ファイル
 PLAN_FILE = os.path.join(INPUT_DIR, "plan.txt")
+VOICE_DIR = os.path.join(INPUT_DIR, "voice")
+
 
 # プロンプトディレクトリ
 SETUP_PROMPT_DIR = os.path.join(PROMPT_DIR, "setup")
