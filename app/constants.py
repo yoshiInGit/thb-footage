@@ -21,6 +21,7 @@ STEP_02_QUESTION = "02_question"
 STEP_03_CHRONICLE = "03_chronicle"
 STEP_04_SCHEMA = "04_schema"
 STEP_05_MERGE = "05_merge"
+STEP_06_FORMAT = "06_format"
 
 # 各ステップの出力ディレクトリパス
 SETUP_OUT_DIR = os.path.join(OUTPUT_DIR, STEP_01_SETUP)
@@ -28,6 +29,7 @@ QUESTION_OUT_DIR = os.path.join(OUTPUT_DIR, STEP_02_QUESTION)
 CHRONICLE_OUT_DIR = os.path.join(OUTPUT_DIR, STEP_03_CHRONICLE)
 SCHEMA_OUT_DIR = os.path.join(OUTPUT_DIR, STEP_04_SCHEMA)
 MERGE_OUT_DIR = os.path.join(OUTPUT_DIR, STEP_05_MERGE)
+FORMAT_OUT_DIR = os.path.join(OUTPUT_DIR, STEP_06_FORMAT)
 
 # --- 末端ファイル定義 ---
 
@@ -56,6 +58,7 @@ QUESTION_FILE = os.path.join(QUESTION_OUT_DIR, "question.txt")
 CHRONICLE_FILE = os.path.join(CHRONICLE_OUT_DIR, "chronicle.txt")
 SCHEMA_FILE = os.path.join(SCHEMA_OUT_DIR, "schema.txt")
 FINAL_SCRIPT_FILE = os.path.join(MERGE_OUT_DIR, "final_script.txt")
+FORMATTED_SCRIPT_FILE = os.path.join(FORMAT_OUT_DIR, "final_script_formatted.txt")
 
 def get_chronicle_file(part: str = None) -> str:
     """

@@ -5,12 +5,13 @@ from app.steps.question import QuestionStep
 from app.steps.chronicle import ChronicleStep
 from app.steps.schema import SchemaStep
 from app.steps.merge import MergeStep
+from app.steps.format import FormatStep
 from app.utils import read_file
 import os
 import json
 from app.constants import (
-    STEP_01_SETUP, STEP_02_QUESTION, STEP_03_CHRONICLE, STEP_04_SCHEMA, STEP_05_MERGE,
-    SETUP_FILE, QUESTION_FILE, CHRONICLE_FILE, SCHEMA_FILE, CONTROL_FILE, get_chronicle_file
+    STEP_01_SETUP, STEP_02_QUESTION, STEP_03_CHRONICLE, STEP_04_SCHEMA, STEP_05_MERGE, STEP_06_FORMAT,
+    SETUP_FILE, QUESTION_FILE, CHRONICLE_FILE, SCHEMA_FILE, FINAL_SCRIPT_FILE, CONTROL_FILE, get_chronicle_file
 )
 
 class Pipeline:
@@ -33,6 +34,7 @@ class Pipeline:
             "chronicle": ChronicleStep(STEP_03_CHRONICLE, config, self.gemini),
             "schema": SchemaStep(STEP_04_SCHEMA, config, self.gemini),
             "merge": MergeStep(STEP_05_MERGE, config, self.gemini),
+            "format": FormatStep(STEP_06_FORMAT, config, self.gemini),
         }
 
     def run_with_control(self):
@@ -60,7 +62,7 @@ class Pipeline:
                 "next_step": "setup",
                 "plan_file": "input/plan.txt",
                 "request": "",
-                "notes": "next_step: setup, question, chronicle, schema, merge, all / request: 追加の要望があれば記入"
+                "notes": "next_step: setup, question, chronicle, schema, merge, format, all / request: 追加の要望があれば記入"
             }
             with open(CONTROL_FILE, "w", encoding="utf-8") as f:
                 json.dump(template, f, indent=4, ensure_ascii=False)
@@ -91,7 +93,9 @@ class Pipeline:
             "schema": schema_file
         })
         
-        print(f"[{self.__class__.__name__}] Pipeline completed! Final script: {final_script}")
+        formatted_script = self.steps["format"].run({"input_file": final_script})
+        
+        print(f"[{self.__class__.__name__}] Pipeline completed! Final script: {formatted_script}")
 
     def _get_chronicle_context(self, part_limit: Optional[str] = None) -> str:
         """
@@ -159,3 +163,7 @@ class Pipeline:
                 "chronicle": CHRONICLE_FILE,
                 "schema": SCHEMA_FILE
             })
+
+        elif step_key == "format":
+            step = self.steps["format"]
+            step.run({"input_file": FINAL_SCRIPT_FILE})
