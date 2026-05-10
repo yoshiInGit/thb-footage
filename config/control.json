@@ -1,6 +1,6 @@
 {
-    "next_step": "subtitle",
+    "next_step": "question",
     "plan_file": "input/plan.txt",
-    "request": "",
+    "request": "Bは何もボイジャー１号のことを知らない前提にして",
     "notes": "next_step: setup, question, chronicle, schema, merge, format, subtitle, all / request: 追加の要望があれば記入"
 }
