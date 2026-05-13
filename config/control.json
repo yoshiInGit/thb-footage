@@ -1,5 +1,5 @@
 {
-    "next_step": "chronicle-3",
+    "next_step": "schema",
     "plan_file": "input/plan.txt",
     "request": "Bはあまりボイジャーに同情しすぎないで。",
     "notes": "next_step: setup, question, chronicle, schema, merge, format, subtitle, all / request: 追加の要望があれば記入"
