@@ -15,8 +15,8 @@ refinement:
 
 subtitle:
   speakers:
-    "アメノちゃん": "#000000" # 黒
-    "ディアちゃん": "#ff0000" # 赤
+    "アメノちゃん": "#9D0C0C" # 赤
+    "ディアちゃん": "#004F6E" # 青
   font: "assets/font/MPLUSRounded1c-Medium.ttf"
   font_size: 40
   bg_color: "white"
