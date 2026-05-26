@@ -1,163 +1,196 @@
-# thb-footage: YouTube台本自動生成システム
+# thb-footage: マルチサービス自動生成システム
 
-YouTubeの実話ストーリー解説系動画の台本制作を自動化するPythonツールです。事実発見を通じて視聴者の価値観や視点を書き換える「4段階ナラティブ構成」を採用し、企画書から高品質な台本を生成します。
-
-## 特徴
-
-- **4段階のナラティブ・パイプライン**: 事実の非対称性を利用した導入から、具体的問いの提示、事実ベースの課題蓄積、そして視聴者自身の「解釈の更新」へと導く一連のストーリーテリング設計。
-- **感情・解釈の徹底した暗示化（Show, don't tell）**: 感情的な言葉（恐怖、絶望、怒りなど）や語り手による教訓・解釈の直接的な表現を禁止し、具体的エピソード、数字、情景描写のみで状況を示すことで、視聴者自らに解釈を委ねます。
-- **企画書からの直接生成**: 従来の「構成案」作成を廃止し、企画書から各パートを直接執筆することで、ストーリーの熱量と一貫性を維持します。
-- **文脈の連鎖（Context Chain）**: 各ステップが前の展開を「文脈」として継承し、流れるようなストーリー構成を実現します。
-- **話者識別の自動化**: A（解説者）・B（聞き手）の対話形式を維持し、字幕生成までスムーズに連携。
-- **柔軟な制御**: `control.json` により、全自動の `all` 実行から、特定のパートのみの修正まで自由に制御可能。
+本プロジェクトは、YouTube動画制作における各種自動化タスク（解説動画の台本〜字幕生成、ランキング動画台本生成、映像製作支援など）を独立したコンテナサービスとして並行開発・運用できる、モノレポ（Monorepo）構成のシステムです。
 
 ---
 
-## ナラティブ構成の定義
+## 全体ディレクトリ構成
 
-本システムは以下の4つの物語段階を経て台本を完成させます。
-
-1.  **Set Up（導入）**: 視聴者の常識を裏切り、情報の空白を作ることで、答えを得るまで離脱できない認知状態を生成する。
-2.  **Dramatic Question（問い）**: 舞台の報酬・損失構造を暗示的に確立し、具体的な結末を予測せずにいられない問いを刻む。
-3.  **Chronicle of Discovery（探究の軌跡）**: 主人公が直面したままならない状況や葛藤を、感情表現を交えずに客観的な事実（数字・出来事・情景）として積み重ね、最終パートに向けた「未解決の課題・矛盾」を蓄積する。
-4.  **Schema Update（解決）**: 蓄積された課題を主人公の具体的な決断と行動（事実の連鎖）によって解決させ、視聴者が「これまで持っていた常識や見方」を静かに書き換える（解釈を更新する）体験を提供する。
-
----
-
-## ナラティブ設計の原則
-
-生成される台本の質を担保するため、以下の設計指針をプロンプトに組み込んでいます。
-
-- **Show, don't tell（示せ、語るな）**: 感情、価値観、状況に対する解釈を語り手が直接語ることを徹底的に排除。すべての心理変化や意味付けは、客観的エピソードや五感を刺激する情景描写（カメラで切り取ったような映像的表現）を通じて暗示的に伝えます。
-- **未解決な課題の事実ベースの蓄積**: Chronicleパートでは、エピソードを安易に美化せず、「ままならない構造」として淡々と事実を積み重ねます。解決の兆しと新たな障害によるwave構造により、最終パートのカタルシスを最大化します。
-- **事実の解決による「解釈の更新」**: Schemaパートの目的は「感動」ではなく「見え方の変化」です。主人公が結果的に報われなくても、課題の解決を通じて視聴者に静かなカタルシスと認知のアップデートをもたらします。
-- **文体の緩急制御**: 課題圧縮フェーズ（カタルシス直前の焦燥感）では、意味の通じる短い主述の文を畳みかけ（体言止めは禁止）、感情解放フェーズ（カタルシス以降）では、1文40〜80文字程度のゆったりとした長文に切り替えて静けさと余韻を演出します。
-- **認知科学に基づいたフック**: 感情移入よりも先に、脳の「予測の裏切り」や「情報の非対称性」を利用して視聴者の関心を拘束します。
-
----
-
-## ディレクトリ構成
+システムは、共通ライブラリを格納する `shared/` と、個別の自動化タスクを実行する `services/` に分かれています。
 
 ```text
 .
-├── app/                # アプリケーションロジック
-│   ├── steps/          # 各工程（Setup, Question, etc.）の実装
-│   └── pipeline.py     # パイプライン制御
-├── assets/             # フォント、画像等の静的資産
-├── config/             # 設定ファイル (control.json, settings.yaml)
-├── input/              # 入力データ (plan.txt, 音声素材)
-├── output/             # 生成物 (各ステップのTXT, ログ, 最終動画)
-├── prompts/            # 各ステップのシステムプロンプト
-└── main.py             # 実行エントリーポイント
+├── docker-compose.yml          # 全サービスを定義・管理するDocker Compose設定
+├── .env                        # 共通の環境変数（Gemini APIキーなど）
+├── .gitignore                  # マルチサービス対応の除外設定
+├── README.md                   # 本ドキュメント
+├── shared/                     # 各サービス間で共通利用するコアモジュール
+│   ├── __init__.py
+│   ├── gemini.py               # 共通のGemini APIクライアント
+│   └── utils.py                # 共通のファイル操作ユーティリティ
+└── services/                   # 各種独立サービス
+    └── narrative-script/       # 解説動画の台本〜字幕生成サービス
+        ├── Dockerfile          # サービス専用のDockerfile
+        ├── app/                # 台本生成・結合・字幕化ロジック
+        ├── assets/             # サービス専用アセット（フォントなど）
+        ├── config/             # 各種設定（control.json, settings.yaml）
+        ├── input/              # 入力データ（plan.txt, 音声素材）
+        ├── output/             # 生成された成果物（テキスト、動画など）
+        ├── prompts/            # 各ステップのシステムプロンプト
+        ├── main.py             # サービス実行用エントリーポイント
+        └── requirements.txt    # サービス固有の依存パッケージ
 ```
 
 ---
 
-## 工程の流れとデータの受け渡し
+## 共通の環境設定
 
-```mermaid
-graph TD
-    P[input/plan.txt] -- ①企画書 --> A[01_setup]
-    A -- "②Set Up (TXT)" --> B[02_question]
-    P -- ①企画書 --> B
-    B -- "③Question (TXT)" --> C[03_chronicle]
-    P -- ①企画書 --> C
-    A & B -- "コンテキスト" --> C
-    C -- "④Chronicle of Discovery (TXT)" --> D[04_schema]
-    P -- ①企画書 --> D
-    A & B & C -- "コンテキスト" --> D
-    A & B & C & D -- "全パーツ" --> E[05_merge]
-    E -- "⑤結合台本 (TXT)" --> F[06_format]
-    F -- "⑥整形台本 (TXT)" --> G[07_subtitle]
-    G -- "⑦字幕映像 (MP4)" --> H[最終成果物]
-```
+プロジェクトルート直下に環境変数ファイル `.env` を作成します。
 
-## 各ステップの依存関係
-
-| ステップ | 主な入力 | 生成される出力 | 役割 |
-| :--- | :--- | :--- | :--- |
-| **Set Up** | `plan.txt` | `setup.txt` | 導入・感情移入 |
-| **Question** | `plan.txt`, `setup.txt` | `question.txt` | 具体的問いの提示 |
-| **Chronicle** | `plan.txt`, `setup.txt`, `question.txt` | `chronicle.txt` | 探究と謎の深化 |
-| **Schema** | `plan.txt`, `setup.txt`, `question.txt`, `chronicle.txt` | `schema.txt` | 解釈の逆転・解決 |
-| **Merge** | 全てのステップTXT | `final_script.txt` | 台本の統合 |
-| **Format** | `final_script.txt` | `final_script_formatted.txt` | 読点での改行・話者付与 |
-| **Subtitle** | `input/voice/` 内の素材 | `subtitle.mp4` | 字幕付き映像生成 |
+1. `.env.example` をコピーして `.env` を作成します。
+   ```bash
+   cp .env.example .env
+   ```
+2. `.env` を開き、Gemini の API キーを設定します。
+   ```text
+   GOOGLE_API_KEY=YOUR_GEMINI_API_KEY
+   ```
 
 ---
 
-## セットアップ
+## サービス1: 解説動画台本〜字幕生成 (`narrative-script`)
 
-### 1. 環境設定
-`.env.example` をコピーして `.env` を作成し、Gemini の API キーを設定します。
+YouTubeの実話ストーリー解説系動画の台本制作を自動化し、音声データと字幕を組み合わせた動画（MP4）を出力するサービスです。
 
+> [!NOTE]
+> 4段階ナラティブ構成の定義、ナラティブ設計の原則（Show, don't tellのルールなど）、各ステップの処理フローや詳細な依存関係については、サービス個別のドキュメントである [services/narrative-script/README.md](file:///c:/Users/yoshi/OneDrive/デスクトップ/git/thb-footage/services/narrative-script/README.md) に整理されています。合わせてご参照ください。
+
+### 1. サービスのビルド
+ソースコードの変更や、`shared/` ディレクトリに変更があった場合は、以下のコマンドでDockerイメージを構築・更新します。
 ```bash
-cp .env.example .env
-# .env を編集して GOOGLE_API_KEY=YOUR_KEY を設定
+docker-compose build narrative-script
 ```
 
-### 2. Docker イメージのビルド
-```bash
-docker-compose build
-```
+### 2. 実行の準備
 
----
+実行に必要な設定ファイルや入力データを、`services/narrative-script/` 配下の適切なディレクトリに配置します。
 
-## 使い方 (Docker)
-
-本システムは、すべての工程制御を `config/control.json` で行います。
-
-### 1. 実行手順
-
-1.  **企画書を用意する**: `input/plan.txt` に動画のコンセプトを記入します。
-2.  **制御設定を編集する**: `config/control.json` で `next_step` を指定します。
-3.  **コマンドを実行する**:
-    ```bash
-    docker-compose run --rm app python main.py
-    ```
-
-### 2. `control.json` の設定
-
+#### ① 制御設定の編集 (`services/narrative-script/config/control.json`)
+実行したいステップや、AIへの追加指示を設定します。
 ```json
 {
-    "next_step": "all",
+    "next_step": "subtitle",
     "plan_file": "input/plan.txt",
-    "request": ""
+    "request": "Bはあまりボイジャーに同情しすぎないで。"
 }
 ```
+- **`next_step`**: 実行したいステップ名、または一括実行の `"all"` を指定します。
+  - `setup`: 導入部分（Set Up）の台本生成
+  - `question`: 問い（Dramatic Question）の台本生成
+  - `chronicle`: 探究（Chronicle of Discovery）の台本生成
+  - `schema`: 解決（Schema Update）の台本生成
+  - `merge`: 各ステップで生成された台本ファイルの結合
+  - `format`: 結合台本を対話形式（A, B話者付与）かつ読点で改行するように整形
+  - `subtitle`: 音声素材を結合し、テキストを合成した字幕動画（`.mp4`）の生成
+  - `all`: 上記の全ステップを一括してシーケンシャルに実行
 
-- **`next_step`**: 実行したいステップ名（`setup`, `question`, `chronicle`, `schema`, `merge`, `format`, `subtitle`）または一括実行の `all`。
-- **`request`**: AIへの追加の指示や修正要望がある場合に記入します。
+#### ② 入力データの配置
+- **台本生成タスクを実行する場合**:
+  `services/narrative-script/input/plan.txt` に、解説動画の企画書・プロットを記入します。
+- **字幕動画生成タスクを実行する場合**:
+  `services/narrative-script/input/voice/` 内に、以下の規則に従って音声ファイルと字幕原稿テキストファイルをペアで配置します。
+  - 音声ファイル: `001_名前_タイトル.wav` (WAV形式)
+  - 字幕テキスト: `001_名前_タイトル.txt` (TXT形式, UTF-8)
+  ※冒頭の3桁の数字に基づいて、ペアリングおよび動画内での再生順序が決定されます。
 
 ---
 
-## 字幕映像の設定 (Subtitle Step)
+### 3. サービスの実行コマンド
 
-`config/settings.yaml` の `subtitle` セクションで字幕のデザインを調整できます。
+設定完了後、以下のいずれかの方法でサービスを実行します。
 
-```yaml
-subtitle:
-  speakers:
-    "アメノちゃん": "#000000" # 話者名に含まれる文字列: 色(HEX)
-    "ディアちゃん": "#ff0000"
-  font: "assets/font/MPLUSRounded1c-Medium.ttf" # プロジェクト内のフォントパス
-  font_size: 40  # フォントサイズ
-  bg_color: "white" # 背景色
-  width: 1920    # 映像幅
-  height: 150    # 映像高さ
-  padding_x: 250 # 左右余白（この範囲には文字を入れない）
-  silent_duration: 0.25 # 音声終了後の無音期間（秒）
+#### 方法A: 直接コマンドを指定して実行する（推奨）
+コンテナを起動して、自動的に台本生成・字幕動画生成スクリプト（`main.py`）を実行します。
+```bash
+docker-compose run --rm narrative-script python main.py
+```
+- **`run`**: 新しいコンテナを作成してコマンドを実行します。
+- **`--rm`**: コンテナの実行終了後に、不要になったコンテナを自動的に削除します（ディスク容量の圧迫を防ぐため、推奨されます）。
+- **`narrative-script`**: 対象とするサービス名です。
+- **`python main.py`**: コンテナ内で実行するコマンドです。
+
+#### 方法B: コンテナ内のインタラクティブシェルに入って実行する
+コンテナ内のターミナル（`bash`）に入り、内部から手動でコマンドを実行します。デバッグや対話的な操作を行う場合に便利です。
+```bash
+docker-compose run --rm narrative-script bash
+```
+1. 上記コマンドを実行すると、コンテナのシェル（ワーキングディレクトリ: `/workspace/services/narrative-script`）に入ります。
+2. コンテナ内部で直接 Python スクリプトを実行します。
+   ```bash
+   python main.py
+   ```
+3. コンテナのシェルを抜けるには `exit` を実行します。
+
+#### 実行結果の出力
+- 生成された各種台本テキストおよび最終動画は、以下のディレクトリに出力されます。
+  - 出力先: `services/narrative-script/output/`
+- 音声結合・字幕動画（mp4）の出力先は以下の通りです。
+  - 出力先: `services/narrative-script/output/07_subtitle/subtitle.mp4`
+
+---
+
+## 将来新しいサービスを追加する際の手順
+
+別の用途（例: ランキング動画の台本作成 `ranking-script`）を追加する際は、以下の手順でシステムに組み込むことができます。
+
+### 1. ディレクトリとファイルの作成
+`services/` の下に新しいサービス用のディレクトリを作成し、必要なファイルを配置します。
+```text
+services/
+└── ranking-script/
+    ├── Dockerfile          # サービス専用のDockerfile
+    ├── requirements.txt    # 必要なPythonライブラリ
+    ├── main.py             # 実行エントリーポイント
+    └── app/                # ロジックコード
 ```
 
-### 素材の配置
-`input/voice/` ディレクトリに以下の形式でファイルを配置してください。
-- `001_名前_タイトル.wav` (音声ファイル)
-- `001_名前_タイトル.txt` (字幕テキスト)
+### 2. Dockerfile の記述例
+共通モジュール `shared/` をビルド時に同梱できるように、ビルドコンテキストをプロジェクトルート（`.`）に設定した `Dockerfile` を記述します。
+```dockerfile
+FROM python:3.11-slim
 
-※冒頭の3桁の数字でペアリングと再生順序を決定します。
+WORKDIR /workspace
 
----
+# 依存パッケージのインストール
+COPY services/ranking-script/requirements.txt ./services/ranking-script/requirements.txt
+RUN pip install --no-cache-dir -r services/ranking-script/requirements.txt
 
-## 注意事項
-- **Gemini APIの制限**: 生成AIの性質上、出力内容には揺らぎがあります。`config/settings.yaml` の `temperature` で調整してください。
-- **ログの確認**: 各生成時のプロンプトと応答は `output/logs/` に詳細に保存されます。
+# コード全体のコピー（共通モジュールsharedを含めるため）
+COPY . .
+
+WORKDIR /workspace/services/ranking-script
+CMD ["python", "main.py"]
+```
+
+### 3. Docker Compose への登録
+プロジェクトルート直下の `docker-compose.yml` に、新規サービスコンテナの定義を追加します。
+```yaml
+services:
+  # 既存の解説動画生成サービス
+  narrative-script:
+    ...
+
+  # 新規追加するランキング動画生成サービス
+  ranking-script:
+    build:
+      context: .
+      dockerfile: services/ranking-script/Dockerfile
+    volumes:
+      - .:/workspace
+    working_dir: /workspace/services/ranking-script
+    env_file:
+      - .env
+    stdin_open: true
+    tty: true
+```
+
+### 4. 実行コマンド
+追加した新規サービスは、以下のコマンドで同様にビルド・実行が可能です。
+- **ビルド**:
+  ```bash
+  docker-compose build ranking-script
+  ```
+- **実行**:
+  ```bash
+  docker-compose run --rm ranking-script python main.py
+  ```

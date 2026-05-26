@@ -4,12 +4,16 @@ import google.generativeai as genai
 from typing import Optional, List, Dict, Any
 from dotenv import load_dotenv
 
-from app.constants import LOG_DIR, DEFAULT_MODEL_NAME
-
 load_dotenv()
 
 class GeminiClient:
-    def __init__(self, model_name: str = DEFAULT_MODEL_NAME, generation_config: Optional[Dict[str, Any]] = None):
+    def __init__(self, model_name: str = "gemini-1.5-pro", log_dir: str = "output/logs", generation_config: Optional[Dict[str, Any]] = None):
+        """
+        Geminiクライアントの初期化。
+        :param model_name: 使用するモデル名
+        :param log_dir: ログを保存するディレクトリ
+        :param generation_config: 生成設定
+        """
         api_key = os.getenv("GOOGLE_API_KEY")
         if not api_key:
             raise ValueError("GOOGLE_API_KEY not found in environment variables")
@@ -19,7 +23,7 @@ class GeminiClient:
             model_name=model_name,
             generation_config=generation_config
         )
-        self.log_dir = LOG_DIR
+        self.log_dir = log_dir
         self._ensure_log_dir()
 
     def _ensure_log_dir(self):
@@ -53,9 +57,6 @@ class GeminiClient:
                 config[key] = value
 
         response = self.model.generate_content(prompt, generation_config=config)
-        
-        # response_schemaが指定されている場合、JSONとしてパースされるはずなので、
-        # response.text をそのまま返す（パースは呼び出し側で行う）
         response_text = response.text
         
         self._save_log(prompt, response_text)

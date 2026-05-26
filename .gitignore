@@ -1,5 +1,6 @@
 # Environment variables
 .env
+**/.env
 
 # Python
 __pycache__/
@@ -24,10 +25,9 @@ wheels/
 .installed.cfg
 *.egg
 
-# Output and cached data
-output/
-input/theme.txt.example
-input/voice/
+# Output and cached data (マルチサービス構成対応)
+**/output/
+**/input/voice/
 
 # Docker
 .dockerignore
@@ -43,4 +43,4 @@ input/voice/
 Thumbs.db
 
 # Gemini Logs
-output/logs/
+**/output/logs/

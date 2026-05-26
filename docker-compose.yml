@@ -1,8 +1,12 @@
 services:
-  app:
-    build: .
+  # 解説動画の台本〜字幕生成サービス
+  narrative-script:
+    build:
+      context: .
+      dockerfile: services/narrative-script/Dockerfile
     volumes:
-      - .:/app
+      - .:/workspace
+    working_dir: /workspace/services/narrative-script
     env_file:
       - .env
     stdin_open: true
