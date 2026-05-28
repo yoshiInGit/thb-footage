@@ -4,6 +4,17 @@
 
 ---
 
+## 動作要件
+
+本システムを利用するには、以下の環境が必要です。
+
+* **Docker / Docker Compose**: コンテナ環境での実行に必須です。
+  * Windows環境の場合は、Docker Desktop for Windows および WSL 2（Windows Subsystem for Linux）のセットアップを推奨します。
+* **Gemini API キー**: `shared/gemini.py` を通じてテキスト生成を行うために必要です。
+* **インターネット接続**: コンテナビルド時、および Gemini API へのアクセス時に必要です。
+
+---
+
 ## 全体ディレクトリ構成
 
 システムは、共通ライブラリを格納する `shared/` と、個別の自動化タスクを実行する `services/` に分かれています。

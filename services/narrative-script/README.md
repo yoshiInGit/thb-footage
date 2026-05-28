@@ -93,3 +93,65 @@ subtitle:
 
 - **Gemini APIの制限**: 生成AIの性質上、出力内容には揺らぎがあります。安定させたい場合は `config/settings.yaml` の `temperature` を低めに調整してください。
 - **ログの確認**: 各生成時のプロンプトと応答の詳細は `output/logs/` に詳細に保存されます。デバッグやプロンプト調整の際に活用してください。
+
+---
+
+## 企画書テンプレートの活用
+
+台本生成のクオリティを高めるため、入力となる `plan.txt` の書き方の指針としてテンプレートを用意しています。
+
+1. **テンプレートのコピー**:
+   `services/narrative-script/input/plan_template.txt` をコピーして、同ディレクトリに `plan.txt` を作成します。
+2. **構成要素の記述**:
+   テンプレートには、動画のテーマ、ターゲット視聴者、主人公の初期状態（常識）、裏切る事実、解決する行動などのプロット設計シートが含まれています。これらを詳細に記述することで、Gemini がより意図に沿った高品質な4段階ナラティブ台本を生成します。
+
+---
+
+## 中間ファイルと生成のやり直し手順
+
+本サービスはステップ単位で実行を制御でき、生成された中間ファイルは `services/narrative-script/output/` 内にそれぞれ保存されます。
+
+### 中間出力のディレクトリ構成
+* `01_setup/setup.txt`: 導入（Set Up）部分の台本
+* `02_question/question.txt`: 問い（Dramatic Question）部分の台本
+* `03_chronicle/chronicle.txt`: 探究（Chronicle）部分の台本
+* `04_schema/schema.txt`: 解決（Schema Update）部分の台本
+* `05_merge/final_script.txt`: 結合された一本の台本
+* `06_format/final_script_formatted.txt`: 話者（A, B）および読点改行が適用された整形済み台本
+* `07_subtitle/subtitle.mp4`: 字幕付き合成映像（最終出力）
+
+### 途中のステップからやり直す場合
+例えば、「導入（Set Up）と問い（Question）の出来は良いが、探究（Chronicle）以降をもう一度AIに生成し直させたい」という場合は、以下の手順でやり直すことができます。
+
+1. `output/03_chronicle/` 以降のフォルダ内にある生成されたテキストファイルを削除（または退避）します。
+2. `config/control.json` の設定を以下のように編集します。
+   ```json
+   {
+       "next_step": "chronicle",
+       "plan_file": "input/plan.txt",
+       "request": "（必要に応じて追加の指示を入力）"
+   }
+   ```
+3. 実行コマンドを実行します。
+   ```bash
+   docker-compose run --rm narrative-script python main.py
+   ```
+   ※ `setup.txt` と `question.txt` はすでに `output/` 内に存在するため、それらの生成ステップはスキップされ、既存のファイルをコンテキストとして読み込んだ上で `chronicle` ステップから処理が再開されます。
+
+---
+
+## トラブルシューティング
+
+### ① Gemini API のレートリミットエラー（429 Too Many Requests 等）が発生する
+* **原因**: 短時間に大量のトークンを送信したか、APIキーの利用制限（無料枠など）に達した可能性があります。
+* **対策**: 一括実行（`"next_step": "all"`）ではなく、`control.json` の `next_step` を `setup` -> `question` -> `chronicle` -> `schema` のように1ステップずつ手動で切り替えて実行し、ステップ間に少し時間を置くようにしてください。
+
+### ② 字幕動画（MP4）の文字が `□□`（豆腐）に文字化けする
+* **原因**: 字幕生成時に指定された日本語フォントがコンテナ内に存在しないか、パスが間違っています。
+* **対策**: `services/narrative-script/assets/font/` ディレクトリに、日本語に対応した TrueType フォント（`.ttf`）または OpenType フォント（`.otf`）が正しく配置されているか確認してください。また、`config/settings.yaml` の `subtitle.font` にそのフォントへの正しい相対パスが記述されているか確認してください。
+
+### ③ shared モジュールのインポートエラー（ModuleNotFoundError）が出る
+* **原因**: Dockerイメージのビルド時に、共通ライブラリ `shared/` がコンテナ内にコピーされていない可能性があります。
+* **対策**: サービス単体のディレクトリではなく、必ずプロジェクトルート（`.`）をビルドコンテキストとしてビルドを行ってください。
+  * 誤り: `docker build -t narrative-script services/narrative-script/` (共通ライブラリが含まれません)
+  * 正しいビルド方法: `docker-compose build narrative-script`（`docker-compose.yml` でコンテキストがプロジェクトルートに定義されています）
