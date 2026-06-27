@@ -172,10 +172,26 @@ docker-compose build pluggable-script
 * **音声データの準備（字幕生成を行う場合）**: `services/pluggable-script/input/voice/` 内にWAVファイルと字幕テキストファイルをペアで配置します。
 
 ### 4. 実行コマンド
-```bash
-docker-compose run --rm pluggable-script python main.py
-```
-実行すると、各ステップの生成結果や結合された台本、および字幕付き動画が `services/pluggable-script/output/` に出力されます。
+* **全ステップを一括実行する場合**:
+  ```bash
+  docker-compose run --rm pluggable-script python main.py
+  ```
+* **特定のステップのみを選択実行する場合**:
+  コマンド引数 `--step`（または `-s`）を用いて実行する処理を指定できます。
+  ```bash
+  # setup パートの生成のみ実行
+  docker-compose run --rm pluggable-script python main.py --step setup
+
+  # 台本の結合（マージ）のみ実行
+  docker-compose run --rm pluggable-script python main.py --step merge
+
+  # 字幕付き動画の生成のみ実行
+  docker-compose run --rm pluggable-script python main.py --step subtitle
+  ```
+  ※指定可能な値: `setup`, `question`, `merge`, `format`, `subtitle`, `all` (デフォルト)
+
+実行すると、各ステップの生成結果や結合された台本、および字幕付き動画が `services/pluggable-script/output/` に一括してフラットに出力されます。
+
 
 ---
 
