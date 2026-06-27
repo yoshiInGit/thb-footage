@@ -30,16 +30,30 @@
 │   ├── gemini.py               # 共通のGemini APIクライアント
 │   └── utils.py                # 共通のファイル操作ユーティリティ
 └── services/                   # 各種独立サービス
-    └── narrative-script/       # 解説動画の台本〜字幕生成サービス
+    ├── narrative-script/       # 解説動画の台本〜字幕生成サービス
+    │   ├── Dockerfile          # サービス専用のDockerfile
+    │   ├── app/                # 台本生成・結合・字幕化ロジック
+    │   ├── assets/             # サービス専用アセット（フォントなど）
+    │   ├── config/             # 各種設定（control.json, settings.yaml）
+    │   ├── input/              # 入力データ（plan.txt, 音声素材）
+    │   ├── output/             # 生成された成果物（テキスト、動画など）
+    │   ├── prompts/            # 各ステップのシステムプロンプト
+    │   ├── main.py             # サービス実行用エントリーポイント
+    │   └── requirements.txt    # サービス固有の依存パッケージ
+    └── pluggable-script/       # プラグイン構成による台本〜字幕生成サービス
         ├── Dockerfile          # サービス専用のDockerfile
-        ├── app/                # 台本生成・結合・字幕化ロジック
+        ├── app/                # コアロジックとプラグイン群
+        │   ├── plugins/        # プラグインモジュール（台本生成、整形、字幕化など）
+        │   ├── context.py      # 共有コンテキスト (PipelineContext)
+        │   └── ...
         ├── assets/             # サービス専用アセット（フォントなど）
-        ├── config/             # 各種設定（control.json, settings.yaml）
+        ├── config/             # 設定（settings.yaml）
         ├── input/              # 入力データ（plan.txt, 音声素材）
-        ├── output/             # 生成された成果物（テキスト、動画など）
-        ├── prompts/            # 各ステップのシステムプロンプト
-        ├── main.py             # サービス実行用エントリーポイント
+        ├── output/             # 生成された成果物（1つのフォルダにフラットに出力）
+        ├── prompts/            # 各パートのプロンプトテンプレート
+        ├── main.py             # 実行エントリーポイント（Pythonコードでフローを制御）
         └── requirements.txt    # サービス固有の依存パッケージ
+
 ```
 
 ---
@@ -140,7 +154,33 @@ docker-compose run --rm narrative-script bash
 
 ---
 
+## サービス2: プラグイン構成による台本〜字幕生成 (`pluggable-script`)
+
+動画の構成をPythonコードによって柔軟に変更し、共有コンテキストを通じて各処理（台本生成、整形、字幕付き動画生成など）を行うプラグインアーキテクチャ型のサービスです。
+
+### 1. 特徴
+* **Pythonコードによる制御**: `main.py` に直接Pythonコードでプラグインの順序や結合処理を記述します。
+* **出力フォルダの集約**: 中間ファイルおよび最終生成動画は、`services/pluggable-script/output/` 直下にすべてフラットに保存されます。
+
+### 2. サービスのビルド
+```bash
+docker-compose build pluggable-script
+```
+
+### 3. 実行の準備
+* **入力台本の準備**: `services/pluggable-script/input/plan.txt` にプロットを記述します。
+* **音声データの準備（字幕生成を行う場合）**: `services/pluggable-script/input/voice/` 内にWAVファイルと字幕テキストファイルをペアで配置します。
+
+### 4. 実行コマンド
+```bash
+docker-compose run --rm pluggable-script python main.py
+```
+実行すると、各ステップの生成結果や結合された台本、および字幕付き動画が `services/pluggable-script/output/` に出力されます。
+
+---
+
 ## 将来新しいサービスを追加する際の手順
+
 
 別の用途（例: ランキング動画の台本作成 `ranking-script`）を追加する際は、以下の手順でシステムに組み込むことができます。
 

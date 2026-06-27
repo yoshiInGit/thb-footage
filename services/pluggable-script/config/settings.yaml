@@ -1,0 +1,26 @@
+model:
+  name: "gemini-3.1-flash-lite"
+  temperature: 0.7
+  top_p: 0.95
+  top_k: 40
+  max_output_tokens: 8192
+
+paths:
+  input_dir: "input"
+  output_dir: "output"
+  prompt_dir: "prompts"
+
+refinement:
+  max_retries: 2
+
+subtitle:
+  speakers:
+    "アメノちゃん": "#9D0C0C" # 赤
+    "ディアちゃん": "#004F6E" # 青
+  font: "assets/font/MPLUSRounded1c-Medium.ttf"
+  font_size: 40
+  bg_color: "white"
+  width: 1920
+  height: 150
+  padding_x: 250
+  silent_duration: 0.25 # 音声後の無音期間(秒)

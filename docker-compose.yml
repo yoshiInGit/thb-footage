@@ -11,3 +11,17 @@ services:
       - .env
     stdin_open: true
     tty: true
+
+  # 新しいプラグイン構成による台本〜字幕生成サービス
+  pluggable-script:
+    build:
+      context: .
+      dockerfile: services/pluggable-script/Dockerfile
+    volumes:
+      - .:/workspace
+    working_dir: /workspace/services/pluggable-script
+    env_file:
+      - .env
+    stdin_open: true
+    tty: true
+
