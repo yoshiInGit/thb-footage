@@ -1,7 +1,6 @@
-import os
 import argparse
 from app.context import PipelineContext
-from app.utils import load_config, read_file
+from app.utils import load_config
 from app.constants import SETTINGS_YAML
 from app.plugins.script_generator import ScriptGeneratorPlugin
 from app.plugins.script_formatter import ScriptFormatterPlugin
@@ -31,35 +30,13 @@ def main():
         config=config
     )
 
-    setup_file = os.path.join(context.output_dir, "setup.txt")
-    question_file = os.path.join(context.output_dir, "question.txt")
 
-    # 1. 各ジェネレータのロード（必要に応じて実行またはファイルから読み込み）
-    # setup ステップまたは一括実行の場合
+    # 1. 各ジェネレータの実行（常にLLM生成し、既存ファイルがあれば追記）
     if args.step in ["setup", "all"]:
-        if os.path.exists(setup_file):
-            print(f"[main] setup.txt already exists at {setup_file}. Loading from file...")
-            context.set_script("setup", read_file(setup_file))
-        else:
-            setup_plugin = ScriptGeneratorPlugin(name="setup", prompt_template_path="prompts/setup.txt")
-            setup_plugin.run(context)
-    else:
-        # 他のステップで前段のテキストが必要な場合はファイルからロード
-        if os.path.exists(setup_file):
-            context.set_script("setup", read_file(setup_file))
+        ScriptGeneratorPlugin(name="setup", prompt_template_path="prompts/setup.txt").run(context)
 
-    # question ステップまたは一括実行の場合
     if args.step in ["question", "all"]:
-        if os.path.exists(question_file):
-            print(f"[main] question.txt already exists at {question_file}. Loading from file...")
-            context.set_script("question", read_file(question_file))
-        else:
-            question_plugin = ScriptGeneratorPlugin(name="question", prompt_template_path="prompts/question.txt")
-            question_plugin.run(context)
-    else:
-        # 他のステップで前段のテキストが必要な場合はファイルからロード
-        if os.path.exists(question_file):
-            context.set_script("question", read_file(question_file))
+        ScriptGeneratorPlugin(name="question", prompt_template_path="prompts/question.txt").run(context)
 
     # 2. 結合処理
     if args.step in ["merge", "all"]:

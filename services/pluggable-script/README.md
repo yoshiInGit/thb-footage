@@ -85,22 +85,62 @@ subtitle:
 
 ---
 
-## 3. パイプライン構築のサンプルコード (`main.py`)
+## 3. 実行方法と `--step` 引数
 
-Python コード上で引数（`--step`）を受け取り、特定の処理のみを選択して実行する実装例です。
+### 基本的な実行コマンド
+
+```bash
+# 全ステップを一括実行（デフォルト）
+python main.py
+python main.py --step all
+
+# 特定のステップのみ実行
+python main.py --step setup
+python main.py -s question
+```
+
+### `--step` / `-s` 引数の詳細
+
+| 値 | 実行される処理 | 前提となる出力ファイル |
+|---|---|---|
+| `setup` | `prompts/setup.txt` を元に導入パート台本をLLM生成する | なし |
+| `question` | `prompts/question.txt` を元に課題提示パート台本をLLM生成する | なし |
+| `merge` | `setup` + `question` の台本を結合する | `output/setup.txt`, `output/question.txt` |
+| `format` | 結合済み台本をセリフ形式に整形する | `output/merged_script.txt` |
+| `subtitle` | 音声ファイルと台本から字幕動画を生成する | `output/formatted_script.txt`, `input/voice/` |
+| `all` | 上記すべてを上から順に一括実行する（デフォルト） | なし |
+
+> **📝 追記モードについて**
+> 各ステップは常にLLM生成を実行します。`output/` に出力ファイルがすでに存在する場合は上書きせず、タイムスタンプ付きセパレーターを挿入したうえで**追記**されます。
+> やり直す場合は、対象の `output/*.txt` を削除してから再実行してください。
+
+### ステップを単独実行する際の依存関係
+
+`setup` や `question` を単独で指定した場合でも、それ単体でLLM生成が実行されます。ただし `question` の生成には前段 `setup` の台本をコンテキストとして渡すため、`--step all` での一括実行が推奨です。
+
+```
+--step setup    →  output/setup.txt を生成（既存なら追記）
+--step question →  output/question.txt を生成（既存なら追記）
+--step merge    →  output/setup.txt + output/question.txt を結合
+--step format   →  output/merged_script.txt を整形
+--step subtitle →  整形済み台本 + 音声ファイルから字幕動画を生成
+```
+
+### パイプライン実装のサンプルコード (`main.py`)
+
+各ステップは `if args.step in [...]` の分岐で直接呼び出す形式です。新しいステップを追加する際は、対応する `if` ブロックを追記するだけで対応できます。
 
 ```python
-import os
 import argparse
 from app.context import PipelineContext
-from app.utils import load_config, read_file
+from app.utils import load_config
 from app.constants import SETTINGS_YAML
 from app.plugins.script_generator import ScriptGeneratorPlugin
 from app.plugins.script_formatter import ScriptFormatterPlugin
 from app.plugins.subtitle_generator import SubtitleGeneratorPlugin
 
 def main():
-    # 引数の解析
+    # コマンドライン引数の解析
     parser = argparse.ArgumentParser(description="pluggable-script pipeline runner")
     parser.add_argument(
         "--step", "-s",
@@ -111,55 +151,35 @@ def main():
     )
     args = parser.parse_args()
 
-    # 1. 設定のロード
+    # 設定ファイルの読み込み
     config = load_config(SETTINGS_YAML)
 
-    # 2. 共有コンテキストの初期化
+    # 共有コンテキストの初期化
     context = PipelineContext(
         plan_file="input/plan.txt",
         output_dir="output",
         config=config
     )
 
-    setup_file = os.path.join(context.output_dir, "setup.txt")
-    question_file = os.path.join(context.output_dir, "question.txt")
-
-    # setup ステップまたは一括実行の場合
+    # 1. 各ジェネレータの実行（常にLLM生成し、既存ファイルがあれば追記）
     if args.step in ["setup", "all"]:
-        if os.path.exists(setup_file):
-            print(f"[main] setup.txt already exists. Loading...")
-            context.set_script("setup", read_file(setup_file))
-        else:
-            setup_plugin = ScriptGeneratorPlugin("setup", "prompts/setup.txt")
-            setup_plugin.run(context)
-    else:
-        if os.path.exists(setup_file):
-            context.set_script("setup", read_file(setup_file))
+        ScriptGeneratorPlugin(name="setup", prompt_template_path="prompts/setup.txt").run(context)
 
-    # question ステップまたは一括実行の場合
     if args.step in ["question", "all"]:
-        if os.path.exists(question_file):
-            print(f"[main] question.txt already exists. Loading...")
-            context.set_script("question", read_file(question_file))
-        else:
-            question_plugin = ScriptGeneratorPlugin("question", "prompts/question.txt")
-            question_plugin.run(context)
-    else:
-        if os.path.exists(question_file):
-            context.set_script("question", read_file(question_file))
+        ScriptGeneratorPlugin(name="question", prompt_template_path="prompts/question.txt").run(context)
 
-    # 結合処理
+    # 2. 結合処理
     if args.step in ["merge", "all"]:
         context.merge_scripts(parts=["setup", "question"], output_name="merged_script.txt")
 
-    # 整形処理
+    # 3. 台本の整形
     if args.step in ["format", "all"]:
-        formatter = ScriptFormatterPlugin("script_formatter", "formatted_script.txt")
+        formatter = ScriptFormatterPlugin(name="script_formatter", output_name="formatted_script.txt")
         formatter.run(context)
 
-    # 字幕動画の生成
+    # 4. 字幕付き動画の生成
     if args.step in ["subtitle", "all"]:
-        subtitler = SubtitleGeneratorPlugin("subtitle_generator", "subtitle.mp4")
+        subtitler = SubtitleGeneratorPlugin(name="subtitle_generator", output_name="subtitle.mp4")
         subtitler.run(context)
 
 if __name__ == "__main__":

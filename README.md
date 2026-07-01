@@ -172,23 +172,35 @@ docker-compose build pluggable-script
 * **音声データの準備（字幕生成を行う場合）**: `services/pluggable-script/input/voice/` 内にWAVファイルと字幕テキストファイルをペアで配置します。
 
 ### 4. 実行コマンド
-* **全ステップを一括実行する場合**:
-  ```bash
-  docker-compose run --rm pluggable-script python main.py
-  ```
-* **特定のステップのみを選択実行する場合**:
-  コマンド引数 `--step`（または `-s`）を用いて実行する処理を指定できます。
-  ```bash
-  # setup パートの生成のみ実行
-  docker-compose run --rm pluggable-script python main.py --step setup
 
-  # 台本の結合（マージ）のみ実行
-  docker-compose run --rm pluggable-script python main.py --step merge
+#### 方法A: 直接コマンドを指定して実行する（推奨）
+コンテナを起動して、自動的にスクリプト（`main.py`）を実行します。
+```bash
+# 全ステップを一括実行（デフォルト）
+docker-compose run --rm pluggable-script python main.py
 
-  # 字幕付き動画の生成のみ実行
-  docker-compose run --rm pluggable-script python main.py --step subtitle
-  ```
-  ※指定可能な値: `setup`, `question`, `merge`, `format`, `subtitle`, `all` (デフォルト)
+# 特定のステップのみを選択実行する場合
+docker-compose run --rm pluggable-script python main.py --step setup
+docker-compose run --rm pluggable-script python main.py --step question
+docker-compose run --rm pluggable-script python main.py --step merge
+docker-compose run --rm pluggable-script python main.py --step format
+docker-compose run --rm pluggable-script python main.py --step subtitle
+```
+※指定可能な値: `setup`, `question`, `merge`, `format`, `subtitle`, `all` (デフォルト)
+
+#### 方法B: コンテナ内のインタラクティブシェルに入って実行する
+コンテナ内のターミナル（`bash`）に入り、内部から手動でコマンドを実行します。デバッグや対話的な操作を行う場合に便利です。
+```bash
+docker-compose run --rm pluggable-script bash
+```
+1. 上記コマンドを実行すると、コンテナのシェル（ワーキングディレクトリ: `/workspace/services/pluggable-script`）に入ります。
+2. コンテナ内部で直接 Python スクリプトを実行します。
+   ```bash
+   python main.py
+   # または特定ステップを指定して実行
+   python main.py --step setup
+   ```
+3. コンテナのシェルを抜けるには `exit` を実行します。
 
 実行すると、各ステップの生成結果や結合された台本、および字幕付き動画が `services/pluggable-script/output/` に一括してフラットに出力されます。
 
