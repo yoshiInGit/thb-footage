@@ -1,0 +1,3 @@
+処理ロジックの実装例：
+data = {"status": "ok"}
+print(json.dumps(data))

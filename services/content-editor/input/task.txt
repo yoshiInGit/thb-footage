@@ -1,0 +1,2 @@
+1. `import sys` の下に `import json` を追加してください。
+2. `# TODO: implement processing logic` の部分を、参考資料(ref_sample.txt)に記述されている関数 `process_data` の呼び出し処理に変更してください。具体的には `data = {"status": "ok"}\n    print(json.dumps(data))` を実行するようにします。

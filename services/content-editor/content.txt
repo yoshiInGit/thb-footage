@@ -1,0 +1,13 @@
+import os
+import sys
+import json
+
+def main():
+    print("This is a sample application.")
+    print("Processing starts...")
+    data = {"status": "ok"}
+    print(json.dumps(data))
+    print("Done.")
+
+if __name__ == "__main__":
+    main()

@@ -1,0 +1,13 @@
+model:
+  name: "gemini-2.5-flash"
+  temperature: 0.2
+
+paths:
+  input_dir: "input"
+  output_dir: "output"
+  content_file: "content.txt" # 直下に置かれる編集対象ファイル
+  task_file: "task.txt" # inputディレクトリ内の指示ファイル
+  reference_config: "reference.json" # inputディレクトリ内の参考資料設定
+  patch_output: "patch.json" # outputディレクトリ内のパッチ保存ファイル
+  archive_dir: "archives" # outputディレクトリ内のアーカイブディレクトリ
+  log_dir: "logs" # outputディレクトリ内のログディレクトリ

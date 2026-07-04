@@ -25,3 +25,16 @@ services:
     stdin_open: true
     tty: true
 
+  # コンテンツ編集・差分パッチサービス
+  content-editor:
+    build:
+      context: .
+      dockerfile: services/content-editor/Dockerfile
+    volumes:
+      - .:/workspace
+    working_dir: /workspace/services/content-editor
+    env_file:
+      - .env
+    stdin_open: true
+    tty: true
+
