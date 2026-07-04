@@ -9,16 +9,16 @@ from app.plugins.subtitle_generator import SubtitleGeneratorPlugin
 # 全パート定義（生成順序順）
 # 企画書「宇宙へ送られた最後の手紙」の幕構成に対応
 SCRIPT_PARTS = [
-    {"name": "hook",    "prompt": "prompts/hook.txt"},     # 冒頭フック（ナレーション単独）
-    {"name": "you",     "prompt": "prompts/you.txt"},      # 幕① カール・セーガンとは何者か（YOU）
-    {"name": "need",    "prompt": "prompts/need.txt"},     # 幕② NASAからの依頼（NEED）
-    {"name": "go",      "prompt": "prompts/go.txt"},       # 幕③ 人類代表を選ぶ苦悩（GO）
-    {"name": "search",  "prompt": "prompts/search.txt"},   # 幕④ 人類を1枚に圧縮する（SEARCH）
-    {"name": "find",    "prompt": "prompts/find.txt"},     # 幕⑤ 48時間の恋（FIND）
-    {"name": "take",    "prompt": "prompts/take.txt"},     # 幕⑥ 宛先のない手紙（TAKE）
-    {"name": "return",  "prompt": "prompts/return.txt"},   # 幕⑦ 打ち上げ、そしてその後（RETURN）
-    {"name": "change",  "prompt": "prompts/change.txt"},   # 幕⑧ 私たちは何者なのか（CHANGE）
-    {"name": "ending",  "prompt": "prompts/ending.txt"},   # エンディング（着地・余韻）
+    {"name": "hook",    "prompt": "hook.txt"},     # 冒頭フック（ナレーション単独）
+    {"name": "you",     "prompt": "you.txt"},      # 幕① カール・セーガンとは何者か（YOU）
+    {"name": "need",    "prompt": "need.txt"},     # 幕② NASAからの依頼（NEED）
+    {"name": "go",      "prompt": "go.txt"},       # 幕③ 人類代表を選ぶ苦悩（GO）
+    {"name": "search",  "prompt": "search.txt"},   # 幕④ 人類を1枚に圧縮する（SEARCH）
+    {"name": "find",    "prompt": "find.txt"},     # 幕⑤ 48時間の恋（FIND）
+    {"name": "take",    "prompt": "take.txt"},     # 幕⑥ 宛先のない手紙（TAKE）
+    {"name": "return",  "prompt": "return.txt"},   # 幕⑦ 打ち上げ、そしてその後（RETURN）
+    {"name": "change",  "prompt": "change.txt"},   # 幕⑧ 私たちは何者なのか（CHANGE）
+    {"name": "ending",  "prompt": "ending.txt"},   # エンディング（着地・余韻）
 ]
 
 # パート名のリスト（結合順序としても使用）

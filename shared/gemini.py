@@ -1,8 +1,10 @@
 import os
 from datetime import datetime
-import google.generativeai as genai
 from typing import Optional, List, Dict, Any
 from dotenv import load_dotenv
+# 新しいパッケージからClientとtypesをインポート
+from google import genai
+from google.genai import types
 
 load_dotenv()
 
@@ -12,18 +14,21 @@ class GeminiClient:
         Geminiクライアントの初期化。
         :param model_name: 使用するモデル名
         :param log_dir: ログを保存するディレクトリ
-        :param generation_config: 生成設定
+        :param generation_config: 生成設定 (辞書型)
         """
+        # クライアントの初期化（引数を空にすると自動的に環境変数 GEMINI_API_KEY を読み込みます）
+        # もし GOOGLE_API_KEY という変数名で維持したい場合は api_key=os.getenv("GOOGLE_API_KEY") を指定します
         api_key = os.getenv("GOOGLE_API_KEY")
         if not api_key:
             raise ValueError("GOOGLE_API_KEY not found in environment variables")
         
-        genai.configure(api_key=api_key)
-        self.model = genai.GenerativeModel(
-            model_name=model_name,
-            generation_config=generation_config
-        )
+        self.client = genai.Client(api_key=api_key)
+        self.model_name = model_name
         self.log_dir = log_dir
+        
+        # 初期設定の保存（新しいSDKでは GenerateContentConfig オブジェクト、または辞書で渡せます）
+        self.default_config = generation_config or {}
+        
         self._ensure_log_dir()
 
     def _ensure_log_dir(self):
@@ -51,12 +56,17 @@ class GeminiClient:
         :param generation_config: 生成設定のオーバーライド
         """
         # インスタンス生成時の設定と、引数で渡された設定をマージ
-        config = self.model._generation_config.copy() if self.model._generation_config else {}
+        merged_config = self.default_config.copy()
         if generation_config:
-            for key, value in generation_config.items():
-                config[key] = value
+            merged_config.update(generation_config)
 
-        response = self.model.generate_content(prompt, generation_config=config)
+        # 新しいSDKの呼び出し方: client.models.generate_content
+        # 辞書を展開してconfigに渡せます
+        response = self.client.models.generate_content(
+            model=self.model_name,
+            contents=prompt,
+            config=types.GenerateContentConfig(**merged_config) if merged_config else None
+        )
         response_text = response.text
         
         self._save_log(prompt, response_text)
@@ -67,12 +77,18 @@ class GeminiClient:
         """
         チャット形式で生成し、ログを保存する。
         """
-        chat = self.model.start_chat(history=[])
+        # 新しいSDKのチャット初期化: client.chats.create
+        # 過去の履歴(history)をあらかじめ型を整えて渡すことも可能ですが、
+        # ループ内で1通ずつ送る既存のロジックに合わせる場合、空で開始します。
+        chat = self.client.chats.create(model=self.model_name)
+        
         response = None
         prompt_full = ""
+        
         for msg in messages:
             content = msg["content"]
             prompt_full += f"[{msg['role']}]: {content}\n"
+            # メッセージの送信
             response = chat.send_message(content)
         
         response_text = response.text if response else ""
