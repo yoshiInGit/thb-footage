@@ -1,117 +1,194 @@
 import os
 import re
-from typing import Any
+from dataclasses import dataclass
+from typing import Optional, Tuple
 from moviepy import AudioFileClip, TextClip, ColorClip, CompositeVideoClip, concatenate_videoclips
 from app.plugins.base import BasePlugin
 from app.context import PipelineContext
 from app.constants import BASE_DIR, VOICE_DIR
 from app.utils import read_file
 
+
+# ---- 定数 ----
+
+# デフォルトのフォントパス（システムフォントのフォールバック）
+_DEFAULT_FONT = "C:\\Windows\\Fonts\\msgothic.ttc"
+
+# 話者カラーが未設定の場合のデフォルト
+_DEFAULT_TEXT_COLOR = "#000000"
+
+
+# ---- データクラス ----
+
+@dataclass
+class SubtitleConfig:
+    """settings.yaml の `subtitle` セクションを保持するデータクラス。"""
+    font: str
+    font_size: int
+    bg_color: Tuple[int, int, int]
+    width: int
+    height: int
+    padding_x: int
+    silent_duration: float
+    speakers: dict
+
+    @classmethod
+    def from_config(cls, config: dict) -> "SubtitleConfig":
+        """設定辞書から SubtitleConfig を生成する。"""
+        subtitle = config.get("subtitle", {})
+        font_setting = subtitle.get("font", _DEFAULT_FONT)
+        # 相対パスは BASE_DIR 基準の絶対パスに変換
+        font = (
+            os.path.join(BASE_DIR, font_setting)
+            if not os.path.isabs(font_setting)
+            else font_setting
+        )
+        return cls(
+            font=font,
+            font_size=subtitle.get("font_size", 40),
+            bg_color=_hex_to_rgb(subtitle.get("bg_color", "white")),
+            width=subtitle.get("width", 1920),
+            height=subtitle.get("height", 150),
+            padding_x=subtitle.get("padding_x", 250),
+            silent_duration=subtitle.get("silent_duration", 0.25),
+            speakers=subtitle.get("speakers", {}),
+        )
+
+
+# ---- プラグイン ----
+
 class SubtitleGeneratorPlugin(BasePlugin):
     """
-    音声ファイルと字幕原稿から字幕付きの動画ファイルをレンダリングするプラグイン。
+    音声ファイル (.wav) と字幕テキスト (.txt) から
+    字幕テロップ付きの動画ファイルをレンダリングするプラグイン。
     """
+
     def __init__(self, name: str = "subtitle_generator", output_name: str = "subtitle.mp4"):
         super().__init__(name)
         self.output_name = output_name
 
     def run(self, context: PipelineContext) -> None:
-        print(f"[{self.name}] Starting subtitle rendering (moviepy mode)...")
-        
-        # 設定の取得
-        subtitle_config = context.config.get("subtitle", {})
-        speaker_colors = subtitle_config.get("speakers", {})
-        
-        font_setting = subtitle_config.get("font", "C:\\Windows\\Fonts\\msgothic.ttc")
-        if not os.path.isabs(font_setting):
-            # narrative-script/ などのリソースフォルダを直接見る必要があるかもしれないが、
-            # pluggable-script側の assets/font/ も想定してBASE_DIR基準にする
-            font = os.path.join(BASE_DIR, font_setting)
-        else:
-            font = font_setting
-            
-        font_size = subtitle_config.get("font_size", 40)
-        width = subtitle_config.get("width", 1920)
-        height = subtitle_config.get("height", 150)
-        padding_x = subtitle_config.get("padding_x", 250)
-        silent_duration = subtitle_config.get("silent_duration", 0.25)
-        
-        # 音声ソースディレクトリの決定
-        voice_dir = context.config.get("paths", {}).get("voice_dir", VOICE_DIR)
-        # もし相対パスなら
-        if not os.path.isabs(voice_dir):
-            voice_dir = os.path.join(BASE_DIR, voice_dir)
+        print(f"[{self.name}] 字幕動画の生成を開始します...")
+
+        cfg = SubtitleConfig.from_config(context.config)
+        voice_dir = _resolve_voice_dir(context.config)
 
         if not os.path.exists(voice_dir):
-            print(f"[{self.name}] Error: Voice directory not found: {voice_dir}")
+            print(f"[{self.name}] Error: 音声ディレクトリが見つかりません: {voice_dir}")
             return
 
-        files = os.listdir(voice_dir)
-        wav_files = sorted([f for f in files if f.endswith(".wav")])
-        
+        wav_files = sorted(f for f in os.listdir(voice_dir) if f.endswith(".wav"))
         if not wav_files:
-            print(f"[{self.name}] No wav files found in: {voice_dir}")
+            print(f"[{self.name}] Error: WAVファイルが見つかりません: {voice_dir}")
             return
 
-        clips = []
-        
-        for wav_name in wav_files:
-            base_name = os.path.splitext(wav_name)[0]
-            txt_name = base_name + ".txt"
-            txt_path = os.path.join(voice_dir, txt_name)
-            wav_path = os.path.join(voice_dir, wav_name)
-            
-            if not os.path.exists(txt_path):
-                print(f"[{self.name}] Warning: Text file not found for voice: {txt_name}")
-                continue
-                
-            # 話者名を抽出
-            match = re.match(r"^\d{3}_(.*?)_.*$", base_name)
-            speaker = match.group(1) if match else "default"
-            
-            color = "#000000"
-            for s_key, s_color in speaker_colors.items():
-                if s_key in speaker:
-                    color = s_color
-                    break
-            
-            text = read_file(txt_path).strip()
-            audio = AudioFileClip(wav_path)
-            
-            actual_silent_duration = 0.0
-            if text and text[-1] in "、。！？":
-                actual_silent_duration = silent_duration
-                
-            clip_duration = audio.duration + actual_silent_duration
-            
-            # 背景とテキストの合成
-            bg_clip = ColorClip(size=(width, height), color=(255, 255, 255)).with_duration(clip_duration)
-            
-            text_w = width - (padding_x * 2)
-            txt_clip = TextClip(
-                text=text,
-                font_size=font_size,
-                color=color,
-                font=font,
-                method='caption',
-                size=(text_w, height),
-                text_align='center'
-            ).with_duration(clip_duration).with_position('center')
-            
-            video = CompositeVideoClip([bg_clip, txt_clip]).with_duration(clip_duration).with_audio(audio)
-            clips.append(video)
-            
-            print(f"[{self.name}] Created clip for: {base_name} ({clip_duration:.2f}s)")
+        clips = [
+            clip
+            for wav_name in wav_files
+            if (clip := self._build_clip(wav_name, voice_dir, cfg)) is not None
+        ]
 
         if not clips:
-            print(f"[{self.name}] No video clips were created.")
+            print(f"[{self.name}] Error: 有効なクリップが1件もありませんでした。")
             return
 
-        # 連結
-        final_video = concatenate_videoclips(clips, method="compose")
-        
         output_path = os.path.join(context.output_dir, self.output_name)
+        final_video = concatenate_videoclips(clips, method="compose")
         final_video.write_videofile(output_path, fps=24, codec="libx264", audio_codec="aac")
-        
+
         context.video_output_path = output_path
-        print(f"[{self.name}] Subtitle video saved to: {output_path}")
+        print(f"[{self.name}] 字幕動画を保存しました: {output_path}")
+
+    def _build_clip(
+        self,
+        wav_name: str,
+        voice_dir: str,
+        cfg: SubtitleConfig,
+    ) -> Optional[object]:
+        """1件の WAV + TXT ペアから合成クリップを生成して返す。"""
+        base_name = os.path.splitext(wav_name)[0]
+        txt_path = os.path.join(voice_dir, base_name + ".txt")
+        wav_path = os.path.join(voice_dir, wav_name)
+
+        if not os.path.exists(txt_path):
+            print(f"[{self.name}] Warning: テキストファイルが見つかりません（スキップ）: {base_name}.txt")
+            return None
+
+        text = read_file(txt_path).strip()
+        speaker = _extract_speaker(base_name)
+        color = _resolve_speaker_color(speaker, cfg.speakers)
+
+        audio = AudioFileClip(wav_path)
+        # 文末が句読点の場合のみ無音を付加
+        tail_silence = cfg.silent_duration if (text and text[-1] in "、。！？") else 0.0
+        clip_duration = audio.duration + tail_silence
+
+        bg_clip = ColorClip(
+            size=(cfg.width, cfg.height),
+            color=cfg.bg_color,
+        ).with_duration(clip_duration)
+
+        txt_clip = TextClip(
+            text=text,
+            font_size=cfg.font_size,
+            color=color,
+            font=cfg.font,
+            method="caption",
+            size=(cfg.width - cfg.padding_x * 2, cfg.height),
+            text_align="center",
+        ).with_duration(clip_duration).with_position("center")
+
+        clip = CompositeVideoClip([bg_clip, txt_clip]).with_duration(clip_duration).with_audio(audio)
+        print(f"[{self.name}] クリップ作成完了: {base_name} ({clip_duration:.2f}s)")
+        return clip
+
+
+# ---- プライベートヘルパー ----
+
+def _resolve_voice_dir(config: dict) -> str:
+    """設定辞書から voice_dir の絶対パスを解決する。"""
+    voice_dir = config.get("paths", {}).get("voice_dir", VOICE_DIR)
+    if not os.path.isabs(voice_dir):
+        voice_dir = os.path.join(BASE_DIR, voice_dir)
+    return voice_dir
+
+
+def _extract_speaker(base_name: str) -> str:
+    """ファイル名 `{連番}_{話者名}_{識別子}` から話者名を抽出する。"""
+    match = re.match(r"^\d{3}_(.*?)_.*$", base_name)
+    return match.group(1) if match else "default"
+
+
+def _resolve_speaker_color(speaker: str, speakers: dict) -> str:
+    """話者名と speakers 設定から字幕カラーを返す（部分一致）。"""
+    for key, color in speakers.items():
+        if key in speaker:
+            return color
+    return _DEFAULT_TEXT_COLOR
+
+
+def _hex_to_rgb(color: str) -> Tuple[int, int, int]:
+    """
+    カラー文字列を (R, G, B) タプルに変換する。
+    HEX形式 (#RRGGBB) および代表的な色名に対応。
+    """
+    _COLOR_NAMES: dict[str, Tuple[int, int, int]] = {
+        "white": (255, 255, 255),
+        "black": (0, 0, 0),
+        "red":   (255, 0, 0),
+        "blue":  (0, 0, 255),
+        "green": (0, 128, 0),
+    }
+    if isinstance(color, str):
+        lower = color.strip().lower()
+        if lower in _COLOR_NAMES:
+            return _COLOR_NAMES[lower]
+        hex_str = lower.lstrip("#")
+        if len(hex_str) == 6:
+            try:
+                r, g, b = (int(hex_str[i:i+2], 16) for i in (0, 2, 4))
+                return (r, g, b)
+            except ValueError:
+                pass
+    # フォールバック: 白
+    return (255, 255, 255)
