@@ -1,6 +1,4 @@
-google-genai
 python-dotenv
 pyyaml
-pydantic
 moviepy
 Pillow
